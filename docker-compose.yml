@@ -1,0 +1,92 @@
+version: '3'
+services:
+  fastapi_app:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    networks:
+      - mqtt-network
+      - app-network
+    container_name: fastapi_app
+    volumes:
+      - ./app:/app/app
+    depends_on:
+      - db
+
+  fastapi_app_2:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    ports:
+      - "8001:8000"
+    restart: unless-stopped
+    networks:
+      - mqtt-network
+      - app-network
+    container_name: fastapi_app_2
+    volumes:
+      - ./app:/app/app
+    depends_on:
+      - db
+
+  fastapi_app_3:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    ports:
+      - "8002:8000"
+    restart: unless-stopped
+    networks:
+      - mqtt-network
+      - app-network
+    container_name: fastapi_app_3
+    volumes:
+      - ./app:/app/app
+    depends_on:
+      - db
+    
+  db:
+    image: postgres:latest
+    container_name: db
+    networks:
+      - app-network
+    expose:
+      - "5432"
+    restart: always
+    hostname: db
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: db_development_flights_e0
+    volumes:
+      - db-volume:/var/lib/postgresql/data
+      # To persist the data in the database we have a volume that persist after container deletion
+      # and copy the files from the container to the volume.
+
+  custom_mqtt_container:
+    build:
+      context: .
+      dockerfile: Dockerfile.mqtt
+    ports:
+      - "9000:9000"
+    networks:
+      - mqtt-network
+    container_name: mqtt_container
+    restart: always
+    command: python mqtt.py
+    depends_on:
+      - fastapi_app
+    volumes:
+    - ./mqtt.py:/mqtt/mqtt.py
+
+networks:
+  app-network:
+    driver: bridge
+  mqtt-network:
+    driver: bridge
+
+volumes: # All the named volumes needed to persist data after container deletion
+  db-volume:
