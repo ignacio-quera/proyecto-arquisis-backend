@@ -15,6 +15,7 @@ PORT = int(os.getenv("PORT"))
 USER = os.getenv("USER")
 PASSWORD = os.getenv("PASSWORD")
 TOPIC = "flights/info"
+TOPIC_2 = "flights/validations"
 
 # Callback cuando se conecta al broker MQTT
 def on_connect(client, userdata, flags, rc):
