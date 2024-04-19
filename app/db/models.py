@@ -91,13 +91,15 @@ class TicketCreate(BaseModel):
 class Ticket(BaseModel):
 
     __tablename__ = 'tickets'
-    uuid: str
+    id: uuid.UUID
     user_id: int
     departure_airport_id: str
     arrival_airport_id: str
     time_departure: str
     datetime: str
     seller: str
+    amount: int
+    status: str
 
 class TicketCreate(BaseModel):
     id: uuid.UUID
@@ -110,7 +112,11 @@ class TicketCreate(BaseModel):
     seller: str
     amount: int
 <<<<<<< HEAD
+<<<<<<< HEAD
     status: str
 =======
     stauts: str
 >>>>>>> a4f89e8 (Adde listener and publisher, started ticket model)
+=======
+    status: str
+>>>>>>> 459eea5 (Ticket model, mqtt non funcional)

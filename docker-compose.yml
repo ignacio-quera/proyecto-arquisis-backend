@@ -71,6 +71,7 @@ services:
       context: ./listener
       dockerfile: Dockerfile
 <<<<<<< HEAD
+<<<<<<< HEAD
     container_name: listener_container
     networks:
       - mqtt-network
@@ -86,6 +87,11 @@ services:
     restart: always
     command: python mqtt_listener.py
 >>>>>>> a4f89e8 (Adde listener and publisher, started ticket model)
+=======
+    networks:
+      - mqtt-network
+    container_name: listener_container
+>>>>>>> 459eea5 (Ticket model, mqtt non funcional)
     depends_on:
       - fastapi_app
 
@@ -101,6 +107,7 @@ services:
     container_name: publisher_container
     restart: always
     volumes:
+<<<<<<< HEAD
 <<<<<<< HEAD
       - ./publisher:/publisher/publisher
 =======
@@ -122,6 +129,24 @@ services:
     volumes:
       - ./publisher/mqtt_publisher.py:/publisher/mqtt_publisher.py
 >>>>>>> a4f89e8 (Adde listener and publisher, started ticket model)
+=======
+    - ./listener/listener.py:/listener/listener.py
+
+  # publisher:
+  #   build:
+  #     context: ./publisher
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "9001:9001"
+  #   networks:
+  #     - mqtt-network
+  #   container_name: publisher_container
+  #   restart: always
+  #   depends_on:
+  #     - fastapi_app
+  #   volumes:
+  #     - ./publisher/mqtt_publisher.py:/publisher/mqtt_publisher.py
+>>>>>>> 459eea5 (Ticket model, mqtt non funcional)
 
 networks:
   app-network:

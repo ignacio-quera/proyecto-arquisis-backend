@@ -209,13 +209,44 @@ async def get_address(ip: str):
 =======
 @router.post("/create_ticket/")
 def create_ticket(ticket: Ticket, db: Session = Depends(get_db)):
+    print("creando un ticket")
     ticket.id = uuid.uuid4() 
     ticket_request = {
         "id": str(ticket.id),
-        "flight_number": ticket.flight_number,
-        "departure": ticket.departure,
-        "destination": ticket.destination,
-        "price": ticket.price
+        "user_id": ticket.user_id,
+        "departure_airport_id": ticket.departure_airport_id,
+        "arrival_airport_id": ticket.arrival_airport_id,
+        "time_departure": ticket.time_departure,
+        "datetime": ticket.datetime,
+        "seller": ticket.seller,
+        "amount": ticket.amount,
+        "status": ticket.status
     }
+<<<<<<< HEAD
     return crud.create_ticket(db, ticket)
 >>>>>>> a4f89e8 (Adde listener and publisher, started ticket model)
+=======
+    try:
+        crud.create_ticket(db, ticket_request)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.patch("/update_ticket/")
+def update_ticket(ticket: Ticket, db: Session = Depends(get_db)):
+    print("actualizando un ticket")
+    ticket_request = {
+        "id": str(ticket.id),
+        "user_id": ticket.user_id,
+        "departure_airport_id": ticket.departure_airport_id,
+        "arrival_airport_id": ticket.arrival_airport_id,
+        "time_departure": ticket.time_departure,
+        "datetime": ticket.datetime,
+        "seller": ticket.seller,
+        "amount": ticket.amount,
+        "status": ticket.status
+    }
+    try:
+        crud.update_ticket(db, ticket_request)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+>>>>>>> 459eea5 (Ticket model, mqtt non funcional)
