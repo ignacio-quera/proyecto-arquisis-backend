@@ -70,33 +70,28 @@ services:
     build:
       context: ./listener
       dockerfile: Dockerfile
-    ports:
-      - "9000:9000"
     networks:
       - mqtt-network
     container_name: listener_container
-    restart: always
-    command: python mqtt_listener.py
     depends_on:
       - fastapi_app
     volumes:
-    - ./listener/mqtt_listener.py:/listener/mqtt_listener.py
+    - ./listener/listener.py:/listener/listener.py
 
-  publisher:
-    build:
-      context: ./publisher
-      dockerfile: Dockerfile
-    ports:
-      - "9001:9001"
-    networks:
-      - mqtt-network
-    container_name: publisher_container
-    restart: always
-    command: python mqtt_publisher.py
-    depends_on:
-      - fastapi_app
-    volumes:
-      - ./publisher/mqtt_publisher.py:/publisher/mqtt_publisher.py
+  # publisher:
+  #   build:
+  #     context: ./publisher
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "9001:9001"
+  #   networks:
+  #     - mqtt-network
+  #   container_name: publisher_container
+  #   restart: always
+  #   depends_on:
+  #     - fastapi_app
+  #   volumes:
+  #     - ./publisher/mqtt_publisher.py:/publisher/mqtt_publisher.py
 
 networks:
   app-network:

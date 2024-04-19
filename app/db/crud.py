@@ -111,3 +111,8 @@ def create_ticket(db: Session, ticket: Ticket):
     db.commit()
     db.refresh(ticket)
     return ticket
+
+def update_ticket(db: Session, ticket: Ticket):
+    db.query(Ticket).filter(Ticket.uuid == ticket.uuid).update({Ticket.status: ticket.status})
+    db.commit()
+    return ticket

@@ -5,14 +5,10 @@ FROM python:3.8
 WORKDIR /listener
 
 # Copiar el archivo de Python y el archivo de credenciales al contenedor
-COPY topic_handler.py .
-COPY .env .
-COPY requirements.txt .
-
-
+COPY requirements.txt /listener/
 # Instala las dependencias
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY mqtt_listener.py .
+COPY . /listener/
 # Ejecutar el archivo Python al iniciar el contenedor
-CMD ["python", "mqtt_listener.py"]
+CMD ["python", "listener.py"]

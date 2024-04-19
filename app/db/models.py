@@ -53,13 +53,15 @@ class FlightCreate(BaseModel):
 class Ticket(BaseModel):
 
     __tablename__ = 'tickets'
-    uuid: str
+    id: uuid.UUID
     user_id: int
     departure_airport_id: str
     arrival_airport_id: str
     time_departure: str
     datetime: str
     seller: str
+    amount: int
+    status: str
 
 class TicketCreate(BaseModel):
     id: uuid.UUID
@@ -70,4 +72,4 @@ class TicketCreate(BaseModel):
     datetime: str
     seller: str
     amount: int
-    stauts: str
+    status: str
