@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func  # Importar func desde SQLAlchemy
-from .models import Airport, Flight
+from .models import Airport, Flight, Ticket
 from datetime import datetime, date
 from sqlalchemy.orm import aliased
 
@@ -105,3 +105,9 @@ def get_flights_by_id(db: Session, flight_id: int, skip: int = 0, limit: int = 2
         .limit(limit)
         .all()
     )
+
+def create_ticket(db: Session, ticket: Ticket):
+    db.add(ticket)
+    db.commit()
+    db.refresh(ticket)
+    return ticket

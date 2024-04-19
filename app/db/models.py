@@ -2,6 +2,7 @@ from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime
 from sqlalchemy.orm import relationship
 from pydantic import BaseModel
 from .database import Base
+import uuid
 
 class Airport(Base):
     __tablename__ = 'airports'
@@ -48,3 +49,25 @@ class FlightCreate(BaseModel):
     carbon_emissions: int
     price: int
     currency: str
+
+class Ticket(BaseModel):
+
+    __tablename__ = 'tickets'
+    uuid: str
+    user_id: int
+    departure_airport_id: str
+    arrival_airport_id: str
+    time_departure: str
+    datetime: str
+    seller: str
+
+class TicketCreate(BaseModel):
+    id: uuid.UUID
+    user_id: int
+    departure_airport_id: str
+    arrival_airport_id: str
+    time_departure: str
+    datetime: str
+    seller: str
+    amount: int
+    stauts: str

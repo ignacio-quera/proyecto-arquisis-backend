@@ -6,7 +6,7 @@ import json
 from dotenv import load_dotenv
 import os
 
-load_dotenv("mqtt.env", override=True) 
+load_dotenv("env", override=True) 
 
 # Leer las credenciales desde el archivo .env
 HOST = os.getenv("HOST")

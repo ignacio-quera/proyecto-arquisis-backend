@@ -3,7 +3,9 @@ from sqlalchemy.orm import Session
 from app.db import crud
 from app.db.database import SessionLocal
 from app.db.models import Flight
+from app.db.models import Ticket
 from typing import List
+import uuid
 
 
 router = APIRouter()
@@ -78,3 +80,15 @@ def read_aiports(
         return f"No hay ningún aeropuerto"
     
     return airports
+
+@router.post("/create_ticket/")
+def create_ticket(ticket: Ticket, db: Session = Depends(get_db)):
+    ticket.id = uuid.uuid4() 
+    ticket_request = {
+        "id": str(ticket.id),
+        "flight_number": ticket.flight_number,
+        "departure": ticket.departure,
+        "destination": ticket.destination,
+        "price": ticket.price
+    }
+    return crud.create_ticket(db, ticket)
