@@ -1,7 +1,12 @@
 import uuid
 from sqlalchemy.orm import Session
+<<<<<<< HEAD
 from sqlalchemy import func, update  # Importar func desde SQLAlchemy
 from .models import Airport, Flight, Ticket, Users
+=======
+from sqlalchemy import func  # Importar func desde SQLAlchemy
+from .models import Airport, Flight, Ticket
+>>>>>>> a4f89e8 (Adde listener and publisher, started ticket model)
 from datetime import datetime, date
 
 
@@ -108,6 +113,7 @@ def get_flights_by_id(db: Session, flight_id: int, skip: int = 0, limit: int = 2
         .all()
     )
 
+<<<<<<< HEAD
 def create_ticket(db: Session, event_data: dict):
     try:
         #Obtenermos la información que viene en el JSON del evento
@@ -179,3 +185,10 @@ def get_user_by_email(db: Session, email: str):
 # Obtener todos los usuarios
 def get_users(db: Session, skip: int = 0, limit: int = 25):
     return db.query(Users).offset(skip).limit(limit).all()
+=======
+def create_ticket(db: Session, ticket: Ticket):
+    db.add(ticket)
+    db.commit()
+    db.refresh(ticket)
+    return ticket
+>>>>>>> a4f89e8 (Adde listener and publisher, started ticket model)

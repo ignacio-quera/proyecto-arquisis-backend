@@ -51,6 +51,7 @@ class FlightCreate(BaseModel):
     carbon_emissions: int
     price: int
     currency: str
+<<<<<<< HEAD
     seats_available: int
 
 
@@ -85,10 +86,31 @@ class TicketCreate(BaseModel):
     id: uuid.UUID
     flight_id: int
     id_user: str
+=======
+
+class Ticket(BaseModel):
+
+    __tablename__ = 'tickets'
+    uuid: str
+    user_id: int
+    departure_airport_id: str
+    arrival_airport_id: str
+    time_departure: str
+    datetime: str
+    seller: str
+
+class TicketCreate(BaseModel):
+    id: uuid.UUID
+    user_id: int
+>>>>>>> a4f89e8 (Adde listener and publisher, started ticket model)
     departure_airport_id: str
     arrival_airport_id: str
     time_departure: str
     datetime: str
     seller: str
     amount: int
+<<<<<<< HEAD
     status: str
+=======
+    stauts: str
+>>>>>>> a4f89e8 (Adde listener and publisher, started ticket model)

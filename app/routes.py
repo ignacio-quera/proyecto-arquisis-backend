@@ -4,7 +4,14 @@ import requests
 import httpx
 from app.db import crud
 from app.db.database import SessionLocal
+<<<<<<< HEAD
 from app.db.models import  Users, UserCreate
+=======
+from app.db.models import Flight
+from app.db.models import Ticket
+from typing import List
+import uuid
+>>>>>>> a4f89e8 (Adde listener and publisher, started ticket model)
 
 
 PUBLISHER_URL = "http://localhost:9001"
@@ -81,6 +88,7 @@ def read_aiports(
     
     return airports
 
+<<<<<<< HEAD
 
 @router.post("/new_ticket/")
 async def create_ticket(background_tasks: BackgroundTasks, event_data: dict = Body(...), db: Session = Depends(get_db)):
@@ -198,3 +206,16 @@ async def get_address(ip: str):
         raise HTTPException(status_code=500, detail="Failed to fetch address")
 
 
+=======
+@router.post("/create_ticket/")
+def create_ticket(ticket: Ticket, db: Session = Depends(get_db)):
+    ticket.id = uuid.uuid4() 
+    ticket_request = {
+        "id": str(ticket.id),
+        "flight_number": ticket.flight_number,
+        "departure": ticket.departure,
+        "destination": ticket.destination,
+        "price": ticket.price
+    }
+    return crud.create_ticket(db, ticket)
+>>>>>>> a4f89e8 (Adde listener and publisher, started ticket model)

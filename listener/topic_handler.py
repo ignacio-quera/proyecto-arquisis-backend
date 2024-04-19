@@ -2,6 +2,7 @@ import requests
 import json
 import os
 
+<<<<<<< HEAD
 <<<<<<<< HEAD:listener/topic_handler.py
 ========
 # Especifica la ruta completa al archivo .env que deseas cargar
@@ -33,6 +34,8 @@ def on_message(client, userdata, msg):
     #Lo transformamos a un objeto de python
     data = json.loads(payload)
 >>>>>>>> 952861c (publisher and listener init):listener/mqtt_listener.py
+=======
+>>>>>>> a4f89e8 (Adde listener and publisher, started ticket model)
 
 def handleFlightInfo(data):
     try:
@@ -92,6 +95,7 @@ def handleFlightInfo(data):
         print("Error al enviar el mensaje a la API:", e)
 
 def handleTicketValidation(data):
+<<<<<<< HEAD
     try:
         request_id =  data["request_id"]
         group_id=  data["group_id"]
@@ -106,4 +110,6 @@ def handleTicketValidation(data):
         response = requests.post(os.getenv("API_URL")+"/update_ticket/", json=json_data)
     except Exception as e:
         print("Error al manejar el mensaje:", e)
+=======
+>>>>>>> a4f89e8 (Adde listener and publisher, started ticket model)
     pass
