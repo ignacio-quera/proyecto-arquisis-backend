@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main  # Ajustar según la rama de tu proyecto
+  pull_request:
+    branches:
+      - main  # Ajustar según la rama de tu proyecto
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # Seleccionar runner adecuado
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Lint backend
+      run: |
+        pip install pylint
+        pylint your_backend_folder/*.py  # Ajustar ruta según estructura de tu proyecto
+
+    - name: Run trivial test for backend
+      run: python tests/trivial_test.py  # Crear un test trivial que pueda fallar
