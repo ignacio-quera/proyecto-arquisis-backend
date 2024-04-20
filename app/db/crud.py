@@ -217,6 +217,7 @@ def get_user_by_email(db: Session, email: str):
 def get_users(db: Session, skip: int = 0, limit: int = 25):
     return db.query(Users).offset(skip).limit(limit).all()
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 def create_ticket(db: Session, ticket: Ticket):
     db.add(ticket)
@@ -243,3 +244,7 @@ def get_tickets(db: Session, user_id: int = None, skip: int = 0, limit: int = 25
 >>>>>>> e7a2b5d (Cambios tickets)
 =======
 >>>>>>> aad0033 (subiendo cambios en users)
+=======
+
+# TEST DE CI
+>>>>>>> 5a14974 (CI test)
