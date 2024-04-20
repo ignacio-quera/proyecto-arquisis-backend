@@ -5,10 +5,14 @@ import httpx
 from app.db import crud
 from app.db.database import SessionLocal
 <<<<<<< HEAD
+<<<<<<< HEAD
 from app.db.models import  Users, UserCreate
 =======
 from app.db.models import Flight
 from app.db.models import Ticket
+=======
+from app.db.models import Flight, Airport, Users, UserCreate
+>>>>>>> aad0033 (subiendo cambios en users)
 from typing import List
 import uuid
 >>>>>>> a4f89e8 (Adde listener and publisher, started ticket model)
@@ -89,6 +93,7 @@ def read_aiports(
     return airports
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 @router.post("/new_ticket/")
 async def create_ticket(background_tasks: BackgroundTasks, event_data: dict = Body(...), db: Session = Depends(get_db)):
@@ -134,6 +139,12 @@ def read_tickets(
 def register_user(user: UserCreate, db: Session = Depends(get_db)):
     print("Registrando un usuario")
     print(user)
+=======
+
+# # Endpoint para crear un usuario, que devuelva al usuario creado
+@router.post("/register/")
+def register_user(user: UserCreate, db: Session = Depends(get_db)):
+>>>>>>> aad0033 (subiendo cambios en users)
     # Verificar si el usuario ya existe en la base de datos
     existing_user = crud.get_user_by_email(db, user.email)
     if existing_user:
@@ -169,6 +180,7 @@ def read_user_by_email(email: str, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
+<<<<<<< HEAD
 
 @router.get("/get-ip")
 async def get_ip():
@@ -293,3 +305,5 @@ def read_tickets(
     
     return tickets
 >>>>>>> e7a2b5d (Cambios tickets)
+=======
+>>>>>>> aad0033 (subiendo cambios en users)

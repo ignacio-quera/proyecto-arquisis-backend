@@ -5,8 +5,12 @@ from sqlalchemy import func, update  # Importar func desde SQLAlchemy
 from .models import Airport, Flight, Ticket, Users
 =======
 from sqlalchemy import func  # Importar func desde SQLAlchemy
+<<<<<<< HEAD
 from .models import Airport, Flight, Ticket
 >>>>>>> a4f89e8 (Adde listener and publisher, started ticket model)
+=======
+from .models import Airport, Flight, Users
+>>>>>>> aad0033 (subiendo cambios en users)
 from datetime import datetime, date
 
 
@@ -115,6 +119,7 @@ def get_flights_by_id(db: Session, flight_id: int, skip: int = 0, limit: int = 2
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e7a2b5d (Cambios tickets)
 def create_ticket(db: Session, event_data: dict):
@@ -191,6 +196,8 @@ def get_tickets_by_id(db: Session, user_id: int, skip: int = 0, limit: int = 25)
         .all()
     )
 
+=======
+>>>>>>> aad0033 (subiendo cambios en users)
 # Creamos usuarios
 def create_user(db: Session, user: Users):
     db.add(user)
@@ -209,6 +216,7 @@ def get_user_by_email(db: Session, email: str):
 # Obtener todos los usuarios
 def get_users(db: Session, skip: int = 0, limit: int = 25):
     return db.query(Users).offset(skip).limit(limit).all()
+<<<<<<< HEAD
 =======
 def create_ticket(db: Session, ticket: Ticket):
     db.add(ticket)
@@ -233,3 +241,5 @@ def get_tickets(db: Session, user_id: int = None, skip: int = 0, limit: int = 25
     query = db.query(Ticket).all()
     return query
 >>>>>>> e7a2b5d (Cambios tickets)
+=======
+>>>>>>> aad0033 (subiendo cambios en users)

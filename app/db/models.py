@@ -52,7 +52,10 @@ class FlightCreate(BaseModel):
     price: int
     currency: str
 <<<<<<< HEAD
+<<<<<<< HEAD
     seats_available: int
+=======
+>>>>>>> aad0033 (subiendo cambios en users)
 
 
  # Creamos el modelo de usuario   
@@ -67,6 +70,7 @@ class Users(Base):
 class UserCreate(BaseModel):
     email: str
     password: str
+<<<<<<< HEAD
 
 class Ticket(Base):
 
@@ -120,3 +124,5 @@ class TicketCreate(BaseModel):
 =======
     status: str
 >>>>>>> 459eea5 (Ticket model, mqtt non funcional)
+=======
+>>>>>>> aad0033 (subiendo cambios en users)
