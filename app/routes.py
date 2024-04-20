@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from sqlalchemy.orm import Session
 from app.db import crud
 from app.db.database import SessionLocal
-from app.db.models import Flight, Airport, Users, UserCreate
-from app.db.models import Ticket
+from app.db.models import  Users, UserCreate
+# from app.db.models import Ticket, Flight, Airport,
 from typing import List
 import uuid
 
