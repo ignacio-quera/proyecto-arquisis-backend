@@ -3,10 +3,10 @@ name: CI
 on:
   push:
     branches:
-      - dev  # Adjust according to your project branch
+      - ci  # Adjust according to your project branch
   pull_request:
     branches:
-      - dev  # Adjust according to your project branch
+      - ci  # Adjust according to your project branch
 
 jobs:
   build:
@@ -28,4 +28,6 @@ jobs:
     #     pylint-fixer app/*.py
 
     - name: Run trivial test for backend
-      run: python tests/trivial_test.py  # Create a trivial test that could fail
+      run: |
+        pip install httpx
+        python tests/trivial_test.py  # Create a trivial test that could fail
