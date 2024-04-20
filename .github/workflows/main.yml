@@ -23,7 +23,6 @@ jobs:
     - name: Lint backend
       run: |
         pip install pylint
-        pip install
         pylint app/*.py  # Ajustar ruta según estructura de tu proyecto
 
     - name: Run trivial test for backend
