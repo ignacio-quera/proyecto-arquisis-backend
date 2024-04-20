@@ -3,27 +3,27 @@ name: CI
 on:
   push:
     branches:
-      - dev  # Ajustar según la rama de tu proyecto
+      - dev  # Adjust according to your project branch
   pull_request:
     branches:
-      - dev  # Ajustar según la rama de tu proyecto
+      - dev  # Adjust according to your project branch
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # Seleccionar runner adecuado
+    runs-on: ubuntu-latest  # Select appropriate runner
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
-     - name: Install dependencies
+    - name: Install dependencies
       run: |
         pip install -r requirements.txt  # Install your project dependencies
 
     - name: Lint backend
       run: |
         pip install pylint
-        pylint app/*.py  # Ajustar ruta según estructura de tu proyecto
+        pylint app/*.py  # Adjust path according to your project structure
 
     - name: Run trivial test for backend
-      run: python tests/trivial_test.py  # Crear un test trivial que pueda fallar
+      run: python tests/trivial_test.py  # Create a trivial test that could fail
