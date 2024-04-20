@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 def test_always_fails():
     assert False, "This test always fails"
 =======
@@ -12,3 +13,7 @@ def test_read_root():
     assert response.status_code == 200
     assert response.json() == {"Hello": "World"}
 >>>>>>> 057a9df (CI changed test structure)
+=======
+def test_always_fails():
+    assert False, "This test always fails"
+>>>>>>> 0eee9d5 (CI changed test)
