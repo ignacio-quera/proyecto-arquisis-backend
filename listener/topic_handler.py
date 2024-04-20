@@ -84,7 +84,7 @@ def handleFlightInfo(data):
             "airline_logo": airline_logo
         }
         
-        response = requests.post(os.getenv("_URL")+"/create_flights/", json=flight_json) 
+        response = requests.post(os.getenv("API_URL")+"/create_flights/", json=flight_json) 
         if response.status_code == 200:
             print("Mensaje enviado a la API con éxito.")
         else:
@@ -95,6 +95,7 @@ def handleFlightInfo(data):
         print("Error al enviar el mensaje a la API:", e)
 
 def handleTicketValidation(data):
+<<<<<<< HEAD
 <<<<<<< HEAD
     try:
         request_id =  data["request_id"]
@@ -112,4 +113,10 @@ def handleTicketValidation(data):
         print("Error al manejar el mensaje:", e)
 =======
 >>>>>>> a4f89e8 (Adde listener and publisher, started ticket model)
+=======
+    try:
+        print(data)
+    except Exception as e:
+        print("Error al manejar el mensaje:", e)
+>>>>>>> e7a2b5d (Cambios tickets)
     pass

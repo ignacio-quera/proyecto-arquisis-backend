@@ -132,6 +132,7 @@ services:
 =======
     - ./listener/listener.py:/listener/listener.py
 
+<<<<<<< HEAD
   # publisher:
   #   build:
   #     context: ./publisher
@@ -147,6 +148,22 @@ services:
   #   volumes:
   #     - ./publisher/mqtt_publisher.py:/publisher/mqtt_publisher.py
 >>>>>>> 459eea5 (Ticket model, mqtt non funcional)
+=======
+  publisher:
+    build:
+      context: ./publisher
+      dockerfile: Dockerfile
+    ports:
+      - "9001:9001"
+    networks:
+      - mqtt-network
+    container_name: publisher_container
+    restart: always
+    depends_on:
+      - fastapi_app
+    volumes:
+      - ./publisher/mqtt_publisher.py:/publisher/mqtt_publisher.py
+>>>>>>> e7a2b5d (Cambios tickets)
 
 networks:
   app-network:

@@ -114,12 +114,16 @@ def get_flights_by_id(db: Session, flight_id: int, skip: int = 0, limit: int = 2
     )
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e7a2b5d (Cambios tickets)
 def create_ticket(db: Session, event_data: dict):
     try:
         #Obtenermos la información que viene en el JSON del evento
         departure_airport_id = event_data["departure_airport_id"]
         arrival_airport_id = event_data["arrival_airport_id"]
         user_id = event_data["user_id"]
+<<<<<<< HEAD
         flight_id = int(event_data["flight_id"])
         time_departure = event_data["time_departure"]
         seller = event_data["seller"]
@@ -135,15 +139,34 @@ def create_ticket(db: Session, event_data: dict):
             arrival_airport_id=arrival_airport_id,
             time_departure=time_departure,
             datetime=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+=======
+        time_departure = event_data["time_departure"]
+        datetime = event_data["datetime"]
+        seller = event_data["seller"]
+        status = event_data["status"]
+        amount = event_data["amount"]
+
+        #Creamos el objeto Ticket con la información del ticket y sus atributos
+        ticket = Ticket(
+            user_id=user_id,
+            departure_airport_id=departure_airport_id,
+            arrival_airport_id=arrival_airport_id,
+            time_departure=time_departure,
+            datetime=datetime,
+>>>>>>> e7a2b5d (Cambios tickets)
             seller=seller,
             status=status,
             amount=amount
         )
+<<<<<<< HEAD
 
         flight = db.query(Flight).filter(Flight.id == flight_id).first()
         new_seats_available = flight.seats_available - amount
         update_stmt = update(Flight).where(Flight.id == flight_id).values(seats_available=new_seats_available)
         db.execute(update_stmt)
+=======
+        
+>>>>>>> e7a2b5d (Cambios tickets)
         # Agregar el ticket a la sesión y confirmar la transacción
         db.add(ticket)
         db.commit()
@@ -154,6 +177,7 @@ def create_ticket(db: Session, event_data: dict):
         print("Error: ", e)
         db.rollback()
         raise
+<<<<<<< HEAD
 
 def update_ticket(db: Session, ticket_id: uuid.UUID):
     db.query(Ticket).filter(Ticket.uuid == ticket_id).update({Ticket.status: "validated"})
@@ -194,9 +218,18 @@ def create_ticket(db: Session, ticket: Ticket):
 <<<<<<< HEAD
 >>>>>>> a4f89e8 (Adde listener and publisher, started ticket model)
 =======
+=======
+>>>>>>> e7a2b5d (Cambios tickets)
 
 def update_ticket(db: Session, ticket: Ticket):
     db.query(Ticket).filter(Ticket.uuid == ticket.uuid).update({Ticket.status: ticket.status})
     db.commit()
     return ticket
+<<<<<<< HEAD
 >>>>>>> 459eea5 (Ticket model, mqtt non funcional)
+=======
+
+def get_tickets(db: Session, user_id: int = None, skip: int = 0, limit: int = 25):
+    query = db.query(Ticket).all()
+    return query
+>>>>>>> e7a2b5d (Cambios tickets)

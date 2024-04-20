@@ -208,8 +208,12 @@ async def get_address(ip: str):
 
 =======
 @router.post("/create_ticket/")
-def create_ticket(ticket: Ticket, db: Session = Depends(get_db)):
+def create_ticket(
+    event_data: dict = Body(...),
+    db: Session = Depends(get_db)
+    ):
     print("creando un ticket")
+<<<<<<< HEAD
     ticket.id = uuid.uuid4() 
     ticket_request = {
         "id": str(ticket.id),
@@ -226,11 +230,15 @@ def create_ticket(ticket: Ticket, db: Session = Depends(get_db)):
     return crud.create_ticket(db, ticket)
 >>>>>>> a4f89e8 (Adde listener and publisher, started ticket model)
 =======
+=======
+    print(event_data)
+>>>>>>> e7a2b5d (Cambios tickets)
     try:
-        crud.create_ticket(db, ticket_request)
+        crud.create_ticket(db, event_data)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+<<<<<<< HEAD
 @router.patch("/update_ticket/")
 def update_ticket(ticket: Ticket, db: Session = Depends(get_db)):
     print("actualizando un ticket")
@@ -250,3 +258,38 @@ def update_ticket(ticket: Ticket, db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 >>>>>>> 459eea5 (Ticket model, mqtt non funcional)
+=======
+# @router.patch("/update_ticket/")
+# def update_ticket(ticket: Ticket, db: Session = Depends(get_db)):
+#     print("actualizando un ticket")
+#     ticket_request = {
+#         "id": str(ticket.id),
+#         "user_id": ticket.user_id,
+#         "departure_airport_id": ticket.departure_airport_id,
+#         "arrival_airport_id": ticket.arrival_airport_id,
+#         "time_departure": ticket.time_departure,
+#         "datetime": ticket.datetime,
+#         "seller": ticket.seller,
+#         "amount": ticket.amount,
+#         "status": ticket.status
+#     }
+#     try:
+#         crud.update_ticket(db, ticket_request)
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/tickets/")
+def read_tickets(
+    page: int = Query(1, description="Page number", gt=0),
+    size: int = Query(25, description="Number of items per page", gt=0, le=150),
+    db: Session = Depends(get_db)
+    ):
+
+    skip = (page - 1) * size
+    tickets = crud.get_tickets(db, skip=skip, limit=size)
+
+    if not tickets:
+        return f"No hay ningún ticket"
+    
+    return tickets
+>>>>>>> e7a2b5d (Cambios tickets)
