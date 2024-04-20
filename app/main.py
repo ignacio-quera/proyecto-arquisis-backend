@@ -2,7 +2,10 @@
 This module contains the FastAPI application.
 """
 from fastapi import FastAPI
+<<<<<<< HEAD
 from fastapi.middleware.cors import CORSMiddleware
+=======
+>>>>>>> 0670513 (CI fixe)
 import uvicorn
 from app.db import models, database
 from app.routes import router
@@ -24,6 +27,12 @@ app.include_router(router)
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
+<<<<<<< HEAD
+=======
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+>>>>>>> 0670513 (CI fixe)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

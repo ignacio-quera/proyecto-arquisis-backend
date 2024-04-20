@@ -6,6 +6,7 @@ from app.db import crud
 from app.db.database import SessionLocal
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 from app.db.models import  Users, UserCreate
 =======
 from app.db.models import Flight
@@ -13,6 +14,10 @@ from app.db.models import Ticket
 =======
 from app.db.models import Flight, Airport, Users, UserCreate
 >>>>>>> aad0033 (subiendo cambios en users)
+=======
+from app.db.models import  Users, UserCreate
+# from app.db.models import Ticket, Flight, Airport,
+>>>>>>> 0670513 (CI fixe)
 from typing import List
 import uuid
 >>>>>>> a4f89e8 (Adde listener and publisher, started ticket model)
