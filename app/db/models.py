@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime, UUID
 from sqlalchemy.orm import relationship
 from pydantic import BaseModel
 from .database import Base
@@ -50,18 +50,18 @@ class FlightCreate(BaseModel):
     price: int
     currency: str
 
-class Ticket(BaseModel):
+class Ticket(Base):
 
     __tablename__ = 'tickets'
-    id: uuid.UUID
-    user_id: int
-    departure_airport_id: str
-    arrival_airport_id: str
-    time_departure: str
-    datetime: str
-    seller: str
-    amount: int
-    status: str
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(Integer)
+    departure_airport_id = Column(String)
+    arrival_airport_id = Column(String)
+    time_departure = Column(String)
+    datetime = Column(DateTime)
+    seller = Column(String)
+    amount = Column(Integer)
+    status = Column(String)
 
 class TicketCreate(BaseModel):
     id: uuid.UUID

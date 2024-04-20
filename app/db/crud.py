@@ -106,13 +106,46 @@ def get_flights_by_id(db: Session, flight_id: int, skip: int = 0, limit: int = 2
         .all()
     )
 
-def create_ticket(db: Session, ticket: Ticket):
-    db.add(ticket)
-    db.commit()
-    db.refresh(ticket)
-    return ticket
+def create_ticket(db: Session, event_data: dict):
+    try:
+        #Obtenermos la información que viene en el JSON del evento
+        departure_airport_id = event_data["departure_airport_id"]
+        arrival_airport_id = event_data["arrival_airport_id"]
+        user_id = event_data["user_id"]
+        time_departure = event_data["time_departure"]
+        datetime = event_data["datetime"]
+        seller = event_data["seller"]
+        status = event_data["status"]
+        amount = event_data["amount"]
+
+        #Creamos el objeto Ticket con la información del ticket y sus atributos
+        ticket = Ticket(
+            user_id=user_id,
+            departure_airport_id=departure_airport_id,
+            arrival_airport_id=arrival_airport_id,
+            time_departure=time_departure,
+            datetime=datetime,
+            seller=seller,
+            status=status,
+            amount=amount
+        )
+        
+        # Agregar el ticket a la sesión y confirmar la transacción
+        db.add(ticket)
+        db.commit()
+        db.refresh(ticket)
+
+        return ticket
+    except Exception as e:
+        print("Error: ", e)
+        db.rollback()
+        raise
 
 def update_ticket(db: Session, ticket: Ticket):
     db.query(Ticket).filter(Ticket.uuid == ticket.uuid).update({Ticket.status: ticket.status})
     db.commit()
     return ticket
+
+def get_tickets(db: Session, user_id: int = None, skip: int = 0, limit: int = 25):
+    query = db.query(Ticket).all()
+    return query

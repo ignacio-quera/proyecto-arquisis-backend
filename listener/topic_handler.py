@@ -50,7 +50,7 @@ def handleFlightInfo(data):
             "airline_logo": airline_logo
         }
         
-        response = requests.post(os.getenv("_URL")+"/create_flights/", json=flight_json) 
+        response = requests.post(os.getenv("API_URL")+"/create_flights/", json=flight_json) 
         if response.status_code == 200:
             print("Mensaje enviado a la API con éxito.")
         else:
@@ -61,4 +61,8 @@ def handleFlightInfo(data):
         print("Error al enviar el mensaje a la API:", e)
 
 def handleTicketValidation(data):
+    try:
+        print(data)
+    except Exception as e:
+        print("Error al manejar el mensaje:", e)
     pass
