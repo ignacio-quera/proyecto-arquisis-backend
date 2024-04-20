@@ -31,8 +31,11 @@ async def root():
 =======
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     uvicorn.run(app, host="0.0.0.0", port=8000)
 >>>>>>> 0670513 (CI fixe)
 
 if __name__ == "__main__":
+=======
+>>>>>>> 4350cf0 (CI dependencies installation)
     uvicorn.run(app, host="0.0.0.0", port=8000)
