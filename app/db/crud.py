@@ -167,3 +167,5 @@ def get_user_by_email(db: Session, email: str):
 # Obtener todos los usuarios
 def get_users(db: Session, skip: int = 0, limit: int = 25):
     return db.query(Users).offset(skip).limit(limit).all()
+
+# TEST DE CI
