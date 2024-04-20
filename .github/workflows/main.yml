@@ -23,9 +23,7 @@ jobs:
     - name: Lint backend
       run: |
         pip install pylint
-        pip install pylint-fixer
         pylint app/*.py  # Adjust path according to your project structure
-        pylint-fixer app/*.py
   test:
     name: Test
     runs-on: ubuntu-latest
