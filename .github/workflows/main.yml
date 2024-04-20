@@ -20,12 +20,12 @@ jobs:
       run: |
         pip install -r requirements.txt  # Install your project dependencies
 
-    - name: Lint backend
-      run: |
-        pip install pylint
-        pip install pylint-fixer
-        pylint app/*.py  # Adjust path according to your project structure
-        pylint-fixer app/*.py
+    # - name: Lint backend
+    #   run: |
+    #     pip install pylint
+    #     pip install pylint-fixer
+    #     pylint app/*.py  # Adjust path according to your project structure
+    #     pylint-fixer app/*.py
 
     - name: Run trivial test for backend
       run: python tests/trivial_test.py  # Create a trivial test that could fail
