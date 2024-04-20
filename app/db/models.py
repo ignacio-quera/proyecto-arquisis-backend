@@ -48,3 +48,17 @@ class FlightCreate(BaseModel):
     carbon_emissions: int
     price: int
     currency: str
+
+
+ # Creamos el modelo de usuario   
+
+class Users(Base):
+    __tablename__ = 'users'
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
+
+class UserCreate(BaseModel):
+    email: str
+    password: str
