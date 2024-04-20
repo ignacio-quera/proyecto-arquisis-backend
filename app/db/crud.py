@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func  # Importar func desde SQLAlchemy
-from .models import Airport, Flight, Ticket
+from .models import Airport, Flight, Ticket, Users
 from datetime import datetime, date
 from sqlalchemy.orm import aliased
 
@@ -149,3 +149,21 @@ def update_ticket(db: Session, ticket: Ticket):
 def get_tickets(db: Session, user_id: int = None, skip: int = 0, limit: int = 25):
     query = db.query(Ticket).all()
     return query
+# Creamos usuarios
+def create_user(db: Session, user: Users):
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+# Obtener usuarios
+def get_user_by_id(db: Session, user_id: int):
+    return db.query(Users).filter(Users.id == user_id).first()
+
+# Obtener usuario por email
+def get_user_by_email(db: Session, email: str):
+    return db.query(Users).filter(Users.email == email).first()
+
+# Obtener todos los usuarios
+def get_users(db: Session, skip: int = 0, limit: int = 25):
+    return db.query(Users).offset(skip).limit(limit).all()

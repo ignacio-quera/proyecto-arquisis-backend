@@ -50,6 +50,34 @@ class FlightCreate(BaseModel):
     price: int
     currency: str
 
+
+ # Creamos el modelo de usuario   
+
+class Users(Base):
+    __tablename__ = 'users'
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
+
+class UserCreate(BaseModel):
+    email: str
+    password: str
+
+
+ # Creamos el modelo de usuario   
+
+class Users(Base):
+    __tablename__ = 'users'
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
+
+class UserCreate(BaseModel):
+    email: str
+    password: str
+
 class Ticket(Base):
 
     __tablename__ = 'tickets'
