@@ -9,8 +9,10 @@ on:
       - ci  # Adjust according to your project branch
 
 jobs:
+  build:
+    runs-on: ubuntu-latest  # Select appropriate runner
 
-  services:
+    services:
       db:
         image: postgres:latest
         ports:
@@ -21,9 +23,6 @@ jobs:
           POSTGRES_DB: test_db
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
         
-  build:
-    runs-on: ubuntu-latest  # Select appropriate runner
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
