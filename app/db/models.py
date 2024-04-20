@@ -72,6 +72,7 @@ class UserCreate(BaseModel):
     password: str
 <<<<<<< HEAD
 
+<<<<<<< HEAD
 class Ticket(Base):
 
     __tablename__ = 'tickets'
@@ -92,6 +93,8 @@ class TicketCreate(BaseModel):
     id_user: str
 =======
 
+=======
+>>>>>>> c6d8a11 (User model fix)
 class Ticket(Base):
 
     __tablename__ = 'tickets'
