@@ -1,6 +1,9 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 paho-mqtt==2.0.0
 >>>>>>> a4f89e8 (Adde listener and publisher, started ticket model)
+=======
+>>>>>>> 78f69df (listener corriendo correctamente)
 python-dotenv==1.0.1
 requests==2.22.0

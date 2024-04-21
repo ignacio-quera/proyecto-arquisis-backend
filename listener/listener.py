@@ -10,6 +10,7 @@ from topic_handler import handleFlightInfo, handleTicketValidation
 
 # Especifica la ruta completa al archivo .env que deseas cargar
 load_dotenv("mqtt_listener.env", override=True) 
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 import requests
@@ -27,6 +28,8 @@ from topic_handler import handleFlightInfo, handleTicketValidation
 # Especifica la ruta completa al archivo .env que deseas cargar
 load_dotenv(".env", override=True) 
 >>>>>>> 459eea5 (Ticket model, mqtt non funcional)
+=======
+>>>>>>> 78f69df (listener corriendo correctamente)
 
 # Leer las credenciales desde el archivo .env
 HOST = os.getenv("HOST")
@@ -141,38 +144,54 @@ def handleTicketValidation(data):
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 # print("Starting MQTT listener")
 # client = mqtt.Client()
 =======
 # client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
 >>>>>>> 459eea5 (Ticket model, mqtt non funcional)
+=======
+# print("Starting MQTT listener")
+# client = mqtt.Client()
+>>>>>>> 78f69df (listener corriendo correctamente)
 # client.on_connect = on_connect
 # client.on_message = on_message
 # client.username_pw_set(username=USER, password=PASSWORD)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 # print("Conectando al broker MQTT...")
 >>>>>>> 459eea5 (Ticket model, mqtt non funcional)
+=======
+>>>>>>> 78f69df (listener corriendo correctamente)
 # client.connect(HOST, PORT)
 # client.loop_forever()
 
 # Función para iniciar el cliente MQTT
 def start_mqtt_client():
 <<<<<<< HEAD
+<<<<<<< HEAD
     print("Conectando al broker MQTT...")
     client = mqtt.Client()
 =======
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
 >>>>>>> 459eea5 (Ticket model, mqtt non funcional)
+=======
+    print("Conectando al broker MQTT...")
+    client = mqtt.Client()
+>>>>>>> 78f69df (listener corriendo correctamente)
     client.username_pw_set(username=USER, password=PASSWORD)
     client.on_connect = on_connect
     client.on_message = on_message
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     client.connect(HOST, PORT)
 =======
     print("Conectando al broker MQTT...")
+=======
+>>>>>>> 78f69df (listener corriendo correctamente)
     client.connect(HOST, PORT, keepalive=60)
 >>>>>>> 459eea5 (Ticket model, mqtt non funcional)
     

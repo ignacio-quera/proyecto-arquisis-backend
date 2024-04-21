@@ -72,6 +72,7 @@ services:
       dockerfile: Dockerfile
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     container_name: listener_container
     networks:
       - mqtt-network
@@ -131,6 +132,12 @@ services:
 >>>>>>> a4f89e8 (Adde listener and publisher, started ticket model)
 =======
     - ./listener/listener.py:/listener/listener.py
+=======
+    container_name: listener_container
+    restart: unless-stopped
+    volumes:
+    - ./listener/:/listener/listener
+>>>>>>> 78f69df (listener corriendo correctamente)
 
 <<<<<<< HEAD
   # publisher:
