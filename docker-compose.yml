@@ -70,13 +70,10 @@ services:
     build:
       context: ./listener
       dockerfile: Dockerfile
-    networks:
-      - mqtt-network
     container_name: listener_container
-    depends_on:
-      - fastapi_app
+    restart: unless-stopped
     volumes:
-    - ./listener/listener.py:/listener/listener.py
+    - ./listener/:/listener/listener
 
   publisher:
     build:

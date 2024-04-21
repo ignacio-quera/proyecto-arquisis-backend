@@ -7,7 +7,7 @@ import os
 from topic_handler import handleFlightInfo, handleTicketValidation
 
 # Especifica la ruta completa al archivo .env que deseas cargar
-load_dotenv(".env", override=True) 
+load_dotenv("mqtt_listener.env", override=True) 
 
 # Leer las credenciales desde el archivo .env
 HOST = os.getenv("HOST")
@@ -43,23 +43,23 @@ def on_message(client, userdata, msg):
         print(f"Error al manejar el mensaje: {e}")
 
 
-# client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
+# print("Starting MQTT listener")
+# client = mqtt.Client()
 # client.on_connect = on_connect
 # client.on_message = on_message
 # client.username_pw_set(username=USER, password=PASSWORD)
 
-# print("Conectando al broker MQTT...")
 # client.connect(HOST, PORT)
 # client.loop_forever()
 
 # Función para iniciar el cliente MQTT
 def start_mqtt_client():
-    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
+    print("Conectando al broker MQTT...")
+    client = mqtt.Client()
     client.username_pw_set(username=USER, password=PASSWORD)
     client.on_connect = on_connect
     client.on_message = on_message
 
-    print("Conectando al broker MQTT...")
     client.connect(HOST, PORT, keepalive=60)
     
     # Mantener el cliente MQTT en funcionamiento
