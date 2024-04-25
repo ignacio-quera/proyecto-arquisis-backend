@@ -1,10 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Body
+from fastapi import APIRouter, Depends, HTTPException, Query, Body, BackgroundTasks
 from sqlalchemy.orm import Session
+import requests
+import httpx
 from app.db import crud
 from app.db.database import SessionLocal
-from app.db.models import Flight
-from typing import List
+from app.db.models import  Users, UserCreate
 
+
+PUBLISHER_URL = "http://localhost:9001"
 
 router = APIRouter()
 
@@ -36,7 +39,6 @@ def read_flights(
 ):
     # Calcular el offset
     skip = (page - 1) * count
-
     # Obtener los vuelos paginados desde la base de datos
     flights = crud.get_flights(db, departure=departure, arrival=arrival, date=date, skip=skip, limit=count)
 
@@ -78,3 +80,121 @@ def read_aiports(
         return f"No hay ningún aeropuerto"
     
     return airports
+
+
+@router.post("/new_ticket/")
+async def create_ticket(background_tasks: BackgroundTasks, event_data: dict = Body(...), db: Session = Depends(get_db)):
+    print("creando un ticket")
+    print(event_data)
+    try:
+        crud.create_ticket(db, event_data)
+        # response = requests.post(f"{PUBLISHER_URL}/requests/", json={"topic": "flights/validation", "message": event_data})
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(f"{PUBLISHER_URL}/requests", json={"topic": "flights/validation", "message": event_data})
+                data = response.json()
+        except Exception as e:
+            print(f"Error validating ticket: {e}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.patch("/update_ticket/")
+def update_ticket(event_data: dict = Body(...), db: Session = Depends(get_db)):
+    print("actualizando un ticket")
+    try:
+        ticket_id = event_data["ticket_id"]
+        crud.update_ticket(db, ticket_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/tickets/{user_id}")
+def read_tickets(
+    user_id: str,
+    db: Session = Depends(get_db)
+    ):
+
+    tickets = crud.get_tickets_by_id(db, user_id)
+
+    if not tickets:
+        return f"No hay ningún ticket"
+    
+    return tickets
+
+
+# # Endpoint para crear un usuario, que devuelva al usuario creado
+@router.post("users/register/")
+def register_user(user: UserCreate, db: Session = Depends(get_db)):
+    print("Registrando un usuario")
+    print(user)
+    # Verificar si el usuario ya existe en la base de datos
+    existing_user = crud.get_user_by_email(db, user.email)
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    # Crear un nuevo usuario utilizando los datos proporcionados
+    new_user = Users(email=user.email, hashed_password= user.password)
+
+    # Llamar a la función de CRUD para crear el usuario en la base de datos
+    created_user = crud.create_user(db=db, user=new_user)
+
+    return {"message": "User created successfully"}
+
+
+# # Endpoint para obtener un usuario por su identificador
+@router.get("/users/{user_id}")
+def read_user_by_id(user_id: int, db: Session = Depends(get_db)):
+    user = crud.get_user_by_id(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+# # Endpoint para obtener todos los usuarios
+@router.get("/users/")
+def read_users(db: Session = Depends(get_db)):
+    users = crud.get_users(db)
+    return users
+
+# # Endpoint para obtener un usuario por su email
+@router.get("/users/email/{email}")
+def read_user_by_email(email: str, db: Session = Depends(get_db)):
+    user = crud.get_user_by_email(db, email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+@router.get("/get-ip")
+async def get_ip():
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get("https://ipinfo.io/json")
+            data = response.json()
+            return {"ip": data["ip"]}
+    except Exception as e:
+        print(f"Error fetching IP address: {e}")
+        return {"error": "Failed to fetch IP address"}
+    
+@router.get("/get-address")
+async def get_address(ip: str):
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"https://ipinfo.io/{ip}/json")
+            
+            # Check if the response is successful
+            if response.status_code == 200:
+                data = response.json()
+                return {
+                    "city": data["city"],
+                    "region": data["region"],
+                    "country": data["country"],
+                    "loc": data["loc"],
+                    "postal": data["postal"],
+                    "timezone": data["timezone"],
+                }
+            else:
+                raise HTTPException(status_code=response.status_code, detail=response.text)
+                
+    except Exception as e:
+        print(f"Error fetching address: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch address")
+
+

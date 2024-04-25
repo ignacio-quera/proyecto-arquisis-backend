@@ -1,39 +1,9 @@
-import paho.mqtt.client as mqtt
-import time
-import multiprocessing
 import requests
 import json
-from dotenv import load_dotenv
 import os
 
-# Especifica la ruta completa al archivo .env que deseas cargar
-load_dotenv("mqtt.env", override=True) 
 
-# Leer las credenciales desde el archivo .env
-HOST = os.getenv("HOST")
-PORT = int(os.getenv("PORT"))
-USER = os.getenv("USER")
-PASSWORD = os.getenv("PASSWORD")
-TOPIC = "flights/info"
-
-# Callback cuando se conecta al broker MQTT
-def on_connect(client, userdata, flags, rc):
-    if rc == 0:
-        print("Conexión exitosa al broker MQTT")
-        client.subscribe("flights/info")
-    else:
-        print(f"Fallo en la conexión al broker MQTT, código de retorno: {rc}")
-
-
-# Callback cuando llega un mensaje MQTT
-def on_message(client, userdata, msg):
-    print(f"Mensaje recibido en el tópico {msg.topic}: {msg.payload}")
-
-    api_url = "http://fastapi_app:8000/create_flights/"
-    payload = msg.payload.decode()
-    #Lo transformamos a un objeto de python
-    data = json.loads(payload)
-
+def handleFlightInfo(data):
     try:
         flight_info = data[0]  # Primer elemento de la lista
         #Esto me da un string
@@ -69,6 +39,7 @@ def on_message(client, userdata, msg):
         flight_json = {
             "departure_airport": departure_airport,
             "arrival_airport": arrival_airport,
+            "time_departure": departure_time,
             "duration": duration,
             "airplane": airplane,
             "airline": airline,
@@ -79,7 +50,7 @@ def on_message(client, userdata, msg):
             "airline_logo": airline_logo
         }
         
-        response = requests.post(api_url, json=flight_json)
+        response = requests.post(os.getenv("API_URL")+"/create_flights/", json=flight_json) 
         if response.status_code == 200:
             print("Mensaje enviado a la API con éxito.")
         else:
@@ -89,30 +60,19 @@ def on_message(client, userdata, msg):
     except requests.exceptions.RequestException as e:
         print("Error al enviar el mensaje a la API:", e)
 
-
-
-# Función para iniciar el cliente MQTT
-def start_mqtt_client():
-    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
-    client.username_pw_set(username=USER, password=PASSWORD)
-    client.on_connect = on_connect
-    client.on_message = on_message
-
-    print("Conectando al broker MQTT...")
-    client.connect(HOST, PORT, keepalive=60)
-    
-    # Mantener el cliente MQTT en funcionamiento
-    client.loop_forever()
-
-if __name__ == "__main__":
-    # Crear un proceso independiente para el cliente MQTT
-    mqtt_process = multiprocessing.Process(target=start_mqtt_client)
-    mqtt_process.start()
-
+def handleTicketValidation(data):
     try:
-        while True:
-            # Mantener el proceso principal en funcionamiento
-            time.sleep(1)
-    except KeyboardInterrupt:
-        print("Deteniendo el proceso MQTT...")
-        mqtt_process.terminate()
+        request_id =  data["request_id"]
+        group_id=  data["group_id"]
+        seller = 0
+        valid = data["valid"]
+        json_data = {
+            "request_id": request_id,
+            "group_id": group_id,
+            "seller": seller,
+            "valid": valid
+        }
+        response = requests.post(os.getenv("API_URL")+"/update_ticket/", json=json_data)
+    except Exception as e:
+        print("Error al manejar el mensaje:", e)
+    pass
