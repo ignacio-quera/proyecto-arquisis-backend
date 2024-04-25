@@ -37,9 +37,13 @@ PORT = int(os.getenv("PORT"))
 USER = os.getenv("USER")
 PASSWORD = os.getenv("PASSWORD")
 <<<<<<< HEAD
+<<<<<<< HEAD
 API_URL = os.getenv("API_URL")
 =======
 >>>>>>> 459eea5 (Ticket model, mqtt non funcional)
+=======
+API_URL = os.getenv("API_URL")
+>>>>>>> 61e2def (deploy ready)
 
 topicHandlers = {
   'flights/info': handleFlightInfo,
@@ -187,6 +191,7 @@ def start_mqtt_client():
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     client.connect(HOST, PORT)
 =======
     print("Conectando al broker MQTT...")
@@ -194,6 +199,9 @@ def start_mqtt_client():
 >>>>>>> 78f69df (listener corriendo correctamente)
     client.connect(HOST, PORT, keepalive=60)
 >>>>>>> 459eea5 (Ticket model, mqtt non funcional)
+=======
+    client.connect(HOST, PORT)
+>>>>>>> 61e2def (deploy ready)
     
     # Mantener el cliente MQTT en funcionamiento
     client.loop_forever()

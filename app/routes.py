@@ -16,11 +16,14 @@ from app.db.models import Flight, Airport, Users, UserCreate
 >>>>>>> aad0033 (subiendo cambios en users)
 =======
 from app.db.models import  Users, UserCreate
+<<<<<<< HEAD
 # from app.db.models import Ticket, Flight, Airport,
 >>>>>>> 0670513 (CI fixe)
 from typing import List
 import uuid
 >>>>>>> a4f89e8 (Adde listener and publisher, started ticket model)
+=======
+>>>>>>> 61e2def (deploy ready)
 
 
 PUBLISHER_URL = "http://localhost:9001"
@@ -99,6 +102,9 @@ def read_aiports(
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 61e2def (deploy ready)
 
 @router.post("/new_ticket/")
 async def create_ticket(background_tasks: BackgroundTasks, event_data: dict = Body(...), db: Session = Depends(get_db)):
@@ -141,6 +147,7 @@ def read_tickets(
 
 # # Endpoint para crear un usuario, que devuelva al usuario creado
 @router.post("users/register/")
+<<<<<<< HEAD
 def register_user(user: UserCreate, db: Session = Depends(get_db)):
     print("Registrando un usuario")
     print(user)
@@ -150,6 +157,11 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
 @router.post("/register/")
 def register_user(user: UserCreate, db: Session = Depends(get_db)):
 >>>>>>> aad0033 (subiendo cambios en users)
+=======
+def register_user(user: UserCreate, db: Session = Depends(get_db)):
+    print("Registrando un usuario")
+    print(user)
+>>>>>>> 61e2def (deploy ready)
     # Verificar si el usuario ya existe en la base de datos
     existing_user = crud.get_user_by_email(db, user.email)
     if existing_user:
@@ -186,6 +198,9 @@ def read_user_by_email(email: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     return user
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 61e2def (deploy ready)
 
 @router.get("/get-ip")
 async def get_ip():
@@ -223,6 +238,7 @@ async def get_address(ip: str):
         raise HTTPException(status_code=500, detail="Failed to fetch address")
 
 
+<<<<<<< HEAD
 =======
 @router.post("/create_ticket/")
 def create_ticket(
@@ -312,3 +328,5 @@ def read_tickets(
 >>>>>>> e7a2b5d (Cambios tickets)
 =======
 >>>>>>> aad0033 (subiendo cambios en users)
+=======
+>>>>>>> 61e2def (deploy ready)

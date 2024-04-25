@@ -134,10 +134,18 @@ services:
     - ./listener/listener.py:/listener/listener.py
 =======
     container_name: listener_container
+    networks:
+      - mqtt-network
     restart: unless-stopped
     volumes:
+<<<<<<< HEAD
     - ./listener/:/listener/listener
 >>>>>>> 78f69df (listener corriendo correctamente)
+=======
+    - ./listener/:/listener/
+    depends_on:
+      - fastapi_app
+>>>>>>> 61e2def (deploy ready)
 
 <<<<<<< HEAD
   # publisher:
@@ -158,19 +166,22 @@ services:
 =======
   publisher:
     build:
-      context: ./publisher
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.pub
     ports:
       - "9001:9001"
     networks:
+      - app-network
       - mqtt-network
     container_name: publisher_container
     restart: always
-    depends_on:
-      - fastapi_app
     volumes:
+<<<<<<< HEAD
       - ./publisher/mqtt_publisher.py:/publisher/mqtt_publisher.py
 >>>>>>> e7a2b5d (Cambios tickets)
+=======
+      - ./publisher:/publisher/publisher
+>>>>>>> 61e2def (deploy ready)
 
 networks:
   app-network:

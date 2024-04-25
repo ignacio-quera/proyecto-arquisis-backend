@@ -53,9 +53,13 @@ class FlightCreate(BaseModel):
     currency: str
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     seats_available: int
 =======
 >>>>>>> aad0033 (subiendo cambios en users)
+=======
+    seats_available: int
+>>>>>>> 61e2def (deploy ready)
 
 
  # Creamos el modelo de usuario   
@@ -99,19 +103,25 @@ class Ticket(Base):
 
     __tablename__ = 'tickets'
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(Integer)
+    flight_id = Column(Integer)
+    id_user  = Column(String)
     departure_airport_id = Column(String)
     arrival_airport_id = Column(String)
     time_departure = Column(String)
-    datetime = Column(DateTime)
+    datetime = Column(String)
     seller = Column(String)
     amount = Column(Integer)
     status = Column(String)
-
+        
 class TicketCreate(BaseModel):
     id: uuid.UUID
+<<<<<<< HEAD
     user_id: int
 >>>>>>> a4f89e8 (Adde listener and publisher, started ticket model)
+=======
+    flight_id: int
+    id_user: str
+>>>>>>> 61e2def (deploy ready)
     departure_airport_id: str
     arrival_airport_id: str
     time_departure: str

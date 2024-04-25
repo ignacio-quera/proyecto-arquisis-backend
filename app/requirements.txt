@@ -11,8 +11,13 @@ requests==2.22.0
 SQLAlchemy==2.0.28
 uvicorn==0.28.0
 <<<<<<< HEAD
+<<<<<<< HEAD
 pytest==7.3.2
 httpx==0.21.1
 =======
 pytest==7.3.2
 >>>>>>> ff016b2 (CI added pytest to dependencies)
+=======
+pytest==7.3.2
+httpx==0.21.1
+>>>>>>> 61e2def (deploy ready)

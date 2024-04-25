@@ -115,7 +115,17 @@ def handleTicketValidation(data):
 >>>>>>> a4f89e8 (Adde listener and publisher, started ticket model)
 =======
     try:
-        print(data)
+        request_id =  data["request_id"]
+        group_id=  data["group_id"]
+        seller = 0
+        valid = data["valid"]
+        json_data = {
+            "request_id": request_id,
+            "group_id": group_id,
+            "seller": seller,
+            "valid": valid
+        }
+        response = requests.post(os.getenv("API_URL")+"/update_ticket/", json=json_data)
     except Exception as e:
         print("Error al manejar el mensaje:", e)
 >>>>>>> e7a2b5d (Cambios tickets)

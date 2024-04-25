@@ -3,9 +3,13 @@ This module contains the FastAPI application.
 """
 from fastapi import FastAPI
 <<<<<<< HEAD
+<<<<<<< HEAD
 from fastapi.middleware.cors import CORSMiddleware
 =======
 >>>>>>> 0670513 (CI fixe)
+=======
+from fastapi.middleware.cors import CORSMiddleware
+>>>>>>> 61e2def (deploy ready)
 import uvicorn
 from app.db import models, database
 from app.routes import router
