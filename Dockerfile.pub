@@ -1,0 +1,15 @@
+FROM python:3.10
+
+WORKDIR /publisher
+
+COPY publisher/ /publisher/
+COPY requirements.txt /publisher
+# Instala las dependencias
+RUN pip install --no-cache-dir -r requirements.txt
+
+RUN pip install "paho-mqtt<2.0.0"
+RUN pip install requests
+
+EXPOSE 9001
+
+CMD ["python", "publisher.py"]

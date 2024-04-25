@@ -2,6 +2,7 @@ import paho.mqtt.client as mqtt
 import time
 import multiprocessing
 import json
+import requests
 from dotenv import load_dotenv
 import os
 from topic_handler import handleFlightInfo, handleTicketValidation
@@ -14,6 +15,7 @@ HOST = os.getenv("HOST")
 PORT = int(os.getenv("PORT"))
 USER = os.getenv("USER")
 PASSWORD = os.getenv("PASSWORD")
+API_URL = os.getenv("API_URL")
 
 topicHandlers = {
   'flights/info': handleFlightInfo,
@@ -60,7 +62,7 @@ def start_mqtt_client():
     client.on_connect = on_connect
     client.on_message = on_message
 
-    client.connect(HOST, PORT, keepalive=60)
+    client.connect(HOST, PORT)
     
     # Mantener el cliente MQTT en funcionamiento
     client.loop_forever()

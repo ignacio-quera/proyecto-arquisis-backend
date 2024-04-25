@@ -1,8 +1,9 @@
+import uuid
 from sqlalchemy.orm import Session
-from sqlalchemy import func  # Importar func desde SQLAlchemy
+from sqlalchemy import func, update  # Importar func desde SQLAlchemy
 from .models import Airport, Flight, Ticket, Users
 from datetime import datetime, date
-from sqlalchemy.orm import aliased
+
 
 #Función que recibe la información del evento y crea los vuelos y los aeropuertos
 def create_event_with_flight(db: Session, event_data: dict):
@@ -43,7 +44,8 @@ def create_event_with_flight(db: Session, event_data: dict):
             airline_logo=event_data["airline_logo"],
             carbon_emissions=event_data["carbon_emissions"],
             price=event_data["price"],
-            currency=event_data["currency"]
+            currency=event_data["currency"],
+            seats_available= 90
         )
         
         # Agregar el vuelo a la sesión y confirmar la transacción
@@ -91,7 +93,7 @@ def get_flights(
         # Filtrar vuelos cuya fecha de salida sea igual a la fecha indicada
         query = query.filter(func.date(Flight.time_departure) == date_obj)
     
-    flights = query.offset(skip).limit(limit).all()  
+    flights = query.order_by(Flight.time_departure.desc()).offset(skip).limit(limit).all()  
 
     return flights
        
@@ -112,24 +114,30 @@ def create_ticket(db: Session, event_data: dict):
         departure_airport_id = event_data["departure_airport_id"]
         arrival_airport_id = event_data["arrival_airport_id"]
         user_id = event_data["user_id"]
+        flight_id = int(event_data["flight_id"])
         time_departure = event_data["time_departure"]
-        datetime = event_data["datetime"]
         seller = event_data["seller"]
         status = event_data["status"]
-        amount = event_data["amount"]
+        amount = int(event_data["amount"])
 
         #Creamos el objeto Ticket con la información del ticket y sus atributos
         ticket = Ticket(
-            user_id=user_id,
+            id=uuid.uuid4(),
+            id_user=user_id,
+            flight_id=flight_id,
             departure_airport_id=departure_airport_id,
             arrival_airport_id=arrival_airport_id,
             time_departure=time_departure,
-            datetime=datetime,
+            datetime=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             seller=seller,
             status=status,
             amount=amount
         )
-        
+
+        flight = db.query(Flight).filter(Flight.id == flight_id).first()
+        new_seats_available = flight.seats_available - amount
+        update_stmt = update(Flight).where(Flight.id == flight_id).values(seats_available=new_seats_available)
+        db.execute(update_stmt)
         # Agregar el ticket a la sesión y confirmar la transacción
         db.add(ticket)
         db.commit()
@@ -141,14 +149,18 @@ def create_ticket(db: Session, event_data: dict):
         db.rollback()
         raise
 
-def update_ticket(db: Session, ticket: Ticket):
-    db.query(Ticket).filter(Ticket.uuid == ticket.uuid).update({Ticket.status: ticket.status})
+def update_ticket(db: Session, ticket_id: uuid.UUID):
+    db.query(Ticket).filter(Ticket.uuid == ticket_id).update({Ticket.status: "validated"})
     db.commit()
-    return ticket
 
-def get_tickets(db: Session, user_id: int = None, skip: int = 0, limit: int = 25):
-    query = db.query(Ticket).all()
-    return query
+def get_tickets_by_id(db: Session, user_id: int, skip: int = 0, limit: int = 25):
+    return (
+        db.query(Ticket)
+        .order_by(Ticket.time_departure.desc())
+        .filter(Ticket.id_user == user_id)
+        .all()
+    )
+
 # Creamos usuarios
 def create_user(db: Session, user: Users):
     db.add(user)
@@ -167,5 +179,3 @@ def get_user_by_email(db: Session, email: str):
 # Obtener todos los usuarios
 def get_users(db: Session, skip: int = 0, limit: int = 25):
     return db.query(Users).offset(skip).limit(limit).all()
-
-# TEST DE CI

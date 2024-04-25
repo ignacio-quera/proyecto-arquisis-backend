@@ -31,6 +31,8 @@ class Flight(Base):
     carbon_emissions = Column(Integer, nullable=True)  # Campo para emisiones de carbono
     price = Column(Integer)  # Campo para el precio del vuelo
     currency = Column(String)  # Campo para la moneda del precio
+    seats_available = Column(Integer, default=90)  # Campo para los asientos disponibles
+    
 
     departure_airport = relationship('Airport', foreign_keys=[departure_airport_id])
     arrival_airport = relationship('Airport', foreign_keys=[arrival_airport_id])
@@ -49,6 +51,7 @@ class FlightCreate(BaseModel):
     carbon_emissions: int
     price: int
     currency: str
+    seats_available: int
 
 
  # Creamos el modelo de usuario   
@@ -68,18 +71,20 @@ class Ticket(Base):
 
     __tablename__ = 'tickets'
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(Integer)
+    flight_id = Column(Integer)
+    id_user  = Column(String)
     departure_airport_id = Column(String)
     arrival_airport_id = Column(String)
     time_departure = Column(String)
-    datetime = Column(DateTime)
+    datetime = Column(String)
     seller = Column(String)
     amount = Column(Integer)
     status = Column(String)
-
+        
 class TicketCreate(BaseModel):
     id: uuid.UUID
-    user_id: int
+    flight_id: int
+    id_user: str
     departure_airport_id: str
     arrival_airport_id: str
     time_departure: str
