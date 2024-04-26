@@ -73,6 +73,10 @@ def handleTicketValidation(data):
             "valid": valid
         }
         response = requests.post(os.getenv("API_URL")+"/update_ticket/", json=json_data)
+        if response.status_code == 200:
+            print("Mensaje enviado a la API con éxito.")
+        else:
+            print("Error al enviar el mensaje a la API:", response.text)
     except Exception as e:
         print("Error al manejar el mensaje:", e)
     pass
