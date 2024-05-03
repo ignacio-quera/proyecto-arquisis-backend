@@ -3,10 +3,10 @@ name: CI
 on:
   push:
     branches:
-      - ci  # Adjust according to your project branch
+      - main  # Adjust according to your project branch
   pull_request:
     branches:
-      - ci  # Adjust according to your project branch
+      - main  # Adjust according to your project branch
 
 jobs:
   build:
