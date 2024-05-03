@@ -27,12 +27,6 @@ def on_publish(client,userdata,result):
     print("data published \n")
     pass
 
-
-client = mqtt.Client("Publisher")
-client.username_pw_set(username=USER, password=PASSWORD)
-client.on_connect = on_connect
-client.on_publish = on_publish
-
 # Mantener el cliente MQTT en funcionamiento
 
 app = FastAPI()
@@ -46,26 +40,46 @@ app.add_middleware(
 )
 
 
-router = APIRouter()
 
-@router.post("/requests")
+@app.post("/requests")
 async def publish(event_data: dict = Body(...)):
     print("Publishing message")
     try:
         message = json.dumps(event_data)
-        await client.publish(TOPIC, message)
-        # print(event_data)
-        return {"message": "Message published successfully"}
+        request = {
+            "request_id": event_data["request_id"],
+            "group_id": 14,
+            "departure_airport": event_data["departure_airport_id"],
+            "arrival_airport": event_data["arrival_airport_id"],
+            "departure_time": event_data["time_departure"],
+            "datetime": time.strftime('%Y-%m-%d %H:%M:%S'),
+            "deposit_token": "",
+            "quantity": event_data["amount"],
+            "seller": 0,
+        }
+        request = json.dumps(request)
+        print(event_data)
+        client.publish(TOPIC, request)
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail=str(e))
 
-app.include_router(router)
 
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
 
+@app.get("/test")
+async def root():
+    return {"message": "Hello World"}
+
 
 if __name__ == "__main__":
+
+    client = mqtt.Client("Publisher")
+    client.username_pw_set(username=USER, password=PASSWORD)
+    client.on_connect = on_connect
+    client.on_publish = on_publish
+
     client.connect(HOST, PORT)
     uvicorn.run(app, host="0.0.0.0", port=9001)

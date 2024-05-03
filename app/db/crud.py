@@ -105,7 +105,7 @@ def get_flights(
         # Filtrar vuelos cuya fecha de salida sea igual a la fecha indicada
         query = query.filter(func.date(Flight.time_departure) == date_obj)
     
-    flights = query.order_by(Flight.time_departure.desc()).offset(skip).limit(limit).all()  
+    flights = query.offset(skip).limit(limit).all()  
 
     return flights
        
@@ -123,9 +123,13 @@ def get_flights_by_id(db: Session, flight_id: int, skip: int = 0, limit: int = 2
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> e7a2b5d (Cambios tickets)
 def create_ticket(db: Session, event_data: dict):
+=======
+def create_ticket(db: Session, event_data: dict, ticket_id: uuid.UUID):
+>>>>>>> d350b5c (arreglos)
     try:
         #Obtenermos la información que viene en el JSON del evento
         departure_airport_id = event_data["departure_airport_id"]
@@ -141,7 +145,7 @@ def create_ticket(db: Session, event_data: dict):
 
         #Creamos el objeto Ticket con la información del ticket y sus atributos
         ticket = Ticket(
-            id=uuid.uuid4(),
+            id=ticket_id,
             id_user=user_id,
             flight_id=flight_id,
             departure_airport_id=departure_airport_id,
@@ -172,7 +176,7 @@ def create_ticket(db: Session, event_data: dict):
             datetime=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
 >>>>>>> 61e2def (deploy ready)
             seller=seller,
-            status=status,
+            status="pending",
             amount=amount
         )
 <<<<<<< HEAD
@@ -203,7 +207,7 @@ def create_ticket(db: Session, event_data: dict):
 <<<<<<< HEAD
 
 def update_ticket(db: Session, ticket_id: uuid.UUID):
-    db.query(Ticket).filter(Ticket.uuid == ticket_id).update({Ticket.status: "validated"})
+    db.query(Ticket).filter(Ticket.id == ticket_id).update({Ticket.status: "validated"})
     db.commit()
 
 def get_tickets_by_id(db: Session, user_id: int, skip: int = 0, limit: int = 25):

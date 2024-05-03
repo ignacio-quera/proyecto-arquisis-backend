@@ -106,9 +106,9 @@ def handleTicketValidation(data):
             "request_id": request_id,
             "group_id": group_id,
             "seller": seller,
-            "valid": valid
+            "valid": "valid" if valid else "invalid"
         }
-        response = requests.post(os.getenv("API_URL")+"/update_ticket/", json=json_data)
+        response = requests.patch(os.getenv("API_URL")+"/update_ticket/", json=json_data)
         if response.status_code == 200:
             print("Mensaje enviado a la API con éxito.")
         else:
