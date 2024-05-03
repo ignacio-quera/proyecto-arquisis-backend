@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Body, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, Query, Body, BackgroundTasks, Request
 from sqlalchemy.orm import Session
 import requests
 import httpx
+import uuid
 from app.db import crud
 from app.db.database import SessionLocal
 from app.db.models import  Users, UserCreate
@@ -87,14 +88,11 @@ async def create_ticket(background_tasks: BackgroundTasks, event_data: dict = Bo
     print("creando un ticket")
     print(event_data)
     try:
-        crud.create_ticket(db, event_data)
-        # response = requests.post(f"{PUBLISHER_URL}/requests/", json={"topic": "flights/validation", "message": event_data})
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(f"{PUBLISHER_URL}/requests", json={"topic": "flights/validation", "message": event_data})
-                data = response.json()
-        except Exception as e:
-            print(f"Error validating ticket: {e}")
+        id = uuid.uuid4()
+        crud.create_ticket(db, event_data, id)
+        event_data["request_id"] = str(id)
+        service_url = "http://publisher_container:9001/requests"
+        response = requests.post(service_url, json=event_data)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
@@ -102,17 +100,18 @@ async def create_ticket(background_tasks: BackgroundTasks, event_data: dict = Bo
 def update_ticket(event_data: dict = Body(...), db: Session = Depends(get_db)):
     print("actualizando un ticket")
     try:
-        ticket_id = event_data["ticket_id"]
+        ticket_id = event_data["request_id"]
         crud.update_ticket(db, ticket_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
-@router.get("/tickets/{user_id}")
-def read_tickets(
-    user_id: str,
+@router.get("/tickets/")
+async def read_tickets(
+    request: Request,
     db: Session = Depends(get_db)
     ):
-
+    headers = dict(request.headers)
+    user_id = headers.get("user")
     tickets = crud.get_tickets_by_id(db, user_id)
 
     if not tickets:
