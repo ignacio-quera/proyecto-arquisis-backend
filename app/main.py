@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from app.db import models, database
-from app.routes import router
+from app.router import router
 
 app = FastAPI()
 

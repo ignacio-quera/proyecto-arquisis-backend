@@ -45,10 +45,9 @@ app.add_middleware(
 async def publish(event_data: dict = Body(...)):
     print("Publishing message")
     try:
-        message = json.dumps(event_data)
         request = {
             "request_id": event_data["request_id"],
-            "group_id": 14,
+            "group_id": 23,
             "departure_airport": event_data["departure_airport_id"],
             "arrival_airport": event_data["arrival_airport_id"],
             "departure_time": event_data["time_departure"],
@@ -57,8 +56,8 @@ async def publish(event_data: dict = Body(...)):
             "quantity": event_data["amount"],
             "seller": 0,
         }
+        print(request)
         request = json.dumps(request)
-        print(event_data)
         client.publish(TOPIC, request)
     except Exception as e:
         print(e)

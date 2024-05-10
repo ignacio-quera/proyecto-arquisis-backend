@@ -50,7 +50,7 @@ def handleFlightInfo(data):
             "airline_logo": airline_logo
         }
         
-        response = requests.post(os.getenv("API_URL")+"/create_flights/", json=flight_json) 
+        response = requests.post(os.getenv("API_URL")+"/flights/create/", json=flight_json) 
         if response.status_code == 200:
             print("Mensaje enviado a la API con éxito.")
         else:
@@ -72,7 +72,7 @@ def handleTicketValidation(data):
             "seller": seller,
             "valid": "valid" if valid else "invalid"
         }
-        response = requests.patch(os.getenv("API_URL")+"/update_ticket/", json=json_data)
+        response = requests.patch(os.getenv("API_URL")+"/tickets/update/", json=json_data)
         if response.status_code == 200:
             print("Mensaje enviado a la API con éxito.")
         else:
