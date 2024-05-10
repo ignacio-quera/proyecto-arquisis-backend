@@ -93,6 +93,45 @@ services:
     volumes:
       - ./publisher:/publisher/publisher
 
+  jobmaster:
+    container_name: jobmaster
+    build:
+        context: ./workers
+        dockerfile: Dockerfile
+    command: uvicorn producer:app --reload --host 0.0.0.0 --port 8000
+    volumes:
+      - ./workers:/opt/
+    ports:
+      - "8000:8000"
+    environment:
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
+    depends_on:
+      - redis-broker
+    networks:
+      - app-network
+  
+  workers:
+    container_name: workers
+    build:
+        context: ./workers
+        dockerfile: Dockerfile
+    deploy:
+      # replicas scales containers
+      replicas: 1
+    # concurrency specifies number of worker
+    # purge deletes the broker queue every time it starts up
+    command: celery -A consumer.celery_app worker --loglevel=INFO --purge --concurrency=1
+    volumes:
+      - ./workers:/opt/
+    depends_on:
+      - jobmaster
+    environment:
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
+    networks:
+      - app-network
+
 networks:
   app-network:
     driver: bridge
