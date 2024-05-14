@@ -1,8 +1,8 @@
 import uuid
 from sqlalchemy.orm import Session
 from sqlalchemy import func, update  # Importar func desde SQLAlchemy
-from .models import Airport, Flight, Ticket, Users
-from datetime import datetime, date
+from .models import Airport, Flight, Ticket, Users, Prediction, UserLocation
+from datetime import datetime, date, timedelta
 
 
 #Función que recibe la información del evento y crea los vuelos y los aeropuertos
@@ -161,21 +161,91 @@ def get_tickets_by_id(db: Session, user_id: int, skip: int = 0, limit: int = 25)
         .all()
     )
 
-# Creamos usuarios
-def create_user(db: Session, user: Users):
-    db.add(user)
+# # Creamos usuarios
+# def create_user(db: Session, user: Users):
+#     db.add(user)
+#     db.commit()
+#     db.refresh(user)
+#     return user
+
+# # Obtener usuarios
+# def get_user_by_id(db: Session, user_id: int):
+#     return db.query(Users).filter(Users.id == user_id).first()
+
+# # Obtener usuario por email
+# def get_user_by_email(db: Session, email: str):
+#     return db.query(Users).filter(Users.email == email).first()
+
+# # Obtener todos los usuarios
+# def get_users(db: Session, skip: int = 0, limit: int = 25):
+#     return db.query(Users).offset(skip).limit(limit).all()
+
+def create_user_location(db: Session, event_data: dict):
+    try:
+        userLocation = UserLocation(
+            id_user= event_data["user_id"],
+            longitud= event_data["longitud"],
+            latitude= event_data["latitud"]
+        )
+        db.add(userLocation)
+        db.commit()
+        db.refresh(userLocation)
+
+        return userLocation
+    except Exception as e:
+        print("Error: ", e)
+        db.rollback()
+        raise
+
+def update_user_location(db: Session, user_id: int, longitud: str, latitude: str):
+    db.query(UserLocation).filter(UserLocation.id_user == user_id).update({UserLocation.longitud: longitud})
+    db.query(UserLocation).filter(UserLocation.id_user == user_id).update({UserLocation.latitude: latitude})
+    db.commit() 
+
+def get_user_location(db: Session, user_id: int):
+    return db.query(UserLocation).filter(UserLocation.id_user == user_id).all()
+
+def create_prediction(db: Session, user_id: str, job_id:str,  recommended_flights: list):
+    created_prediction = Prediction(
+        id_user=user_id,
+        job_id=job_id,
+        recommended_flights=recommended_flights,
+        status="Pending"
+    )
+    db.add(created_prediction)
     db.commit()
-    db.refresh(user)
-    return user
+    db.refresh(created_prediction)
 
-# Obtener usuarios
-def get_user_by_id(db: Session, user_id: int):
-    return db.query(Users).filter(Users.id == user_id).first()
 
-# Obtener usuario por email
-def get_user_by_email(db: Session, email: str):
-    return db.query(Users).filter(Users.email == email).first()
 
-# Obtener todos los usuarios
-def get_users(db: Session, skip: int = 0, limit: int = 25):
-    return db.query(Users).offset(skip).limit(limit).all()
+def update_prediction(job_id: str, recommended_flights:list, db: Session):
+    prediction = db.query(Prediction).filter(Prediction.job_id == job_id).first()
+    prediction.recommended_flights = recommended_flights
+    prediction.status = "Completed"
+    db.commit()
+    db.refresh(prediction)
+
+
+def get_prediction(job_id: str, db: Session):
+    query = (
+        db.query(Prediction)
+        .filter(Prediction.job_id == job_id)
+        .first())
+    return {'future_prices': query[1], 'future_dates': query[2], 'symbol': query[3], 'initial_date': query[4]}
+
+#Obtener el último ticker comprado por el usuario
+def get_last_approved_ticket(db: Session, user_id: int):
+    return db.query(Ticket).filter(
+        Ticket.user_id == user_id,
+        Ticket.status == "validated"
+    ).order_by(Ticket.datetime.desc()).first()
+
+# Obtener los ultimos 20 vuelos, respecto a la fecha de salida, que salgan dentro de la semana
+# después de la compra, que vayan desde el aeropuerto de destino encontrado en el punto 2. 
+def get_upcoming_flights(db: Session, airport_id: str, departure_date: datetime):
+    week_after_purchase = departure_date + timedelta(days=7)
+    return db.query(Flight).filter(
+        Flight.departure_airport_id == airport_id,
+        Flight.departure_time > departure_date,
+        Flight.departure_time <= week_after_purchase
+    ).order_by(Flight.departure_time.asc()).limit(20).all()

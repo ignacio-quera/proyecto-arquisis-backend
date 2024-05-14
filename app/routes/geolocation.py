@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Body, BackgroundTasks, Request
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
 import httpx
 from app.db.database import SessionLocal
+from app.db import crud
 
 PUBLISHER_URL = "http://localhost:9001"
 
@@ -26,7 +28,7 @@ async def get_ip():
         return {"error": "Failed to fetch IP address"}
     
 @router.get("/get-address")
-async def get_address(ip: str):
+async def get_address(ip: str, db: Session = Depends(get_db)):
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(f"https://ipinfo.io/{ip}/json")
@@ -34,6 +36,12 @@ async def get_address(ip: str):
             # Check if the response is successful
             if response.status_code == 200:
                 data = response.json()
+                event_data = {
+                    "user_id": "test",
+                    "longitud":"",
+                    "latitud": ""}
+                
+                crud.create_user_location(db, event_data)
                 return {
                     "city": data["city"],
                     "region": data["region"],

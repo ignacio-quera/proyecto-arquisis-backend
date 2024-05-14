@@ -3,6 +3,8 @@ from sqlalchemy.orm import relationship
 from pydantic import BaseModel
 from .database import Base
 import uuid
+from sqlalchemy.dialects.postgresql import ARRAY
+
 
 class Airport(Base):
     __tablename__ = 'airports'
@@ -92,3 +94,33 @@ class TicketCreate(BaseModel):
     seller: str
     amount: int
     status: str
+
+class Prediction(Base):
+
+    __tablename__ = 'predictions'
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    id_user = Column(String)
+    job_id = Column(String)
+    recommended_flights = Column(ARRAY(Integer))
+    status = Column(String)
+
+class PredictionCreate(BaseModel):
+    id_user : str
+    job_id : str
+    recommended_flights : list
+    status : str
+
+class UserLocation(Base):
+
+    __tablename__ = 'user location'
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    id_user = Column(String)
+    longitud = Column(String)
+    latitude = Column(String)
+
+class UserLocationCreate(BaseModel):
+    id_user : str
+    longitud : str
+    latitude : str
+    pass
