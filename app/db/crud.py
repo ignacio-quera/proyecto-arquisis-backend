@@ -149,11 +149,17 @@ def create_ticket(db: Session, event_data: dict, ticket_id: uuid.UUID):
         db.rollback()
         raise
 
-def update_ticket(db: Session, ticket_id: uuid.UUID):
-    db.query(Ticket).filter(Ticket.id == ticket_id).update({Ticket.status: "validated"})
+def update_ticket(db: Session, ticket_id: uuid.UUID, status: str):
+    db.query(Ticket).filter(Ticket.id == ticket_id).update({Ticket.status: status})
     db.commit()
 
-def get_tickets_by_id(db: Session, user_id: int, skip: int = 0, limit: int = 25):
+def get_tickets_by_id(db: Session, ticket_id: uuid.UUID):
+    return (
+        db.query(Ticket)
+        .filter(Ticket.id == ticket_id)
+    )
+
+def get_tickets_by_user_id(db: Session, user_id: int, skip: int = 0, limit: int = 25):
     return (
         db.query(Ticket)
         .order_by(Ticket.time_departure.desc())

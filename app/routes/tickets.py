@@ -1,11 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Body, BackgroundTasks, Request
 from sqlalchemy.orm import Session
+from transbank.webpay.webpay_plus.transaction import Transaction, WebpayOptions, IntegrationCommerceCodes, IntegrationApiKeys
+from transbank.common.integration_type import IntegrationType
+from transbank.error.transbank_error import TransbankError
 import requests
+import random
 import uuid
 from app.db import crud
 from app.db.database import SessionLocal
-# from worker_tasks import flight_prediction 
-import httpx
+
 
 def get_airport_coordinates(airport_code):
     base_url = "https://geocode.maps.co"
@@ -45,7 +48,6 @@ def get_airport_coordinates(airport_name):
 PUBLISHER_URL = "http://localhost:9001"
 
 router = APIRouter()
-result = {};
 # Dependency to get the database session
 def get_db():
     db = SessionLocal()
@@ -53,7 +55,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
 @router.get("/")
 async def read_tickets(
     request: Request,
@@ -61,11 +62,10 @@ async def read_tickets(
     ):
     headers = dict(request.headers)
     user_id = headers.get("user")
-    tickets = crud.get_tickets_by_id(db, user_id)
+    tickets = crud.get_tickets_by_user_id(db, user_id)
 
     if not tickets:
         return f"No hay ningún ticket"
-    
     return tickets
 
 @router.post("/create/")
@@ -73,11 +73,14 @@ async def create_ticket(background_tasks: BackgroundTasks, event_data: dict = Bo
     print("creando un ticket")
     print(event_data)
     try:
-        id = uuid.uuid4()
-        crud.create_ticket(db, event_data, id)
-        event_data["request_id"] = str(id)
-        service_url = "http://publisher_container:9001/requests"
-        response = requests.post(service_url, json=event_data)
+        request_id = uuid.uuid4()
+        crud.create_ticket(db, event_data, request_id)
+        event_data["request_id"] = str(request_id)
+        return_url = "http://localhost:3000/webpayredirect"
+        tx = Transaction(WebpayOptions(IntegrationCommerceCodes.WEBPAY_PLUS, IntegrationApiKeys.WEBPAY, IntegrationType.TEST))
+        result = tx.create(str(random.randrange(1000000, 99999999)), str(event_data["request_id"]), str(event_data["amount"]), return_url)
+        print(result)
+        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
@@ -86,6 +89,55 @@ def update_ticket(event_data: dict = Body(...), db: Session = Depends(get_db)):
     print("actualizando un ticket")
     try:
         ticket_id = event_data["request_id"]
+        status = event_data["valid"]
+        crud.update_ticket(db, ticket_id, status)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/webpay/")
+async def webpay_confirmation(transbank_response: dict):
+    # Example:
+    # payment_status = transbank_sdk.handle_payment_callback(transbank_response)
+    print(transbank_response)
+    payment_status = {"status": "success"}
+    print("confirmacion de webpay")
+    return payment_status
+
+
+@router.post('/webpayconfirm')
+async def webpay_confirm(token_ws: str, db: Session = Depends(get_db)):
+    try:
+        transaction = Transaction(WebpayOptions(IntegrationCommerceCodes.WEBPAY_PLUS, IntegrationApiKeys.WEBPAY, IntegrationType.TEST))
+        response = await transaction.commit(token_ws)
+        print(response)
+        message = {}
+
+        if response.status == 'AUTHORIZED':
+            message = {
+                'request_id': response.session_id,
+                'valid': True,
+            }
+            crud.update_ticket(db, response.session_id, "valid")
+            requests.post(f'{PUBLISHER_URL}/validations', json=message)
+            return {'message': 'Transaction confirmed'}
+        else:
+            crud.update_ticket(db, response.session_id, "invalid")
+            message = {
+                'request_id': response.session_id,
+                'valid': False,
+            }
+            requests.post(f'{PUBLISHER_URL}/validations', json=message)
+            return {'message': 'Transaction cancelled'}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.post("/validation/")
+async def validate_ticket(event_data: dict = Body(...), db: Session = Depends(get_db)):
+    print("validando un ticket")
+    try:
+        ticket_id = event_data["request_id"]
+        service_url = "http://publisher_container:9001/requests"
+        response = requests.post(service_url, json=event_data)
         crud.update_ticket(db, ticket_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
