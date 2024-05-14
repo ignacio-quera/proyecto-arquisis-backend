@@ -209,6 +209,7 @@ def create_prediction(db: Session, user_id: str, job_id:str,  recommended_flight
     created_prediction = Prediction(
         id_user=user_id,
         job_id=job_id,
+        datetime=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         recommended_flights=recommended_flights,
         status="Pending"
     )
@@ -232,6 +233,9 @@ def get_prediction(job_id: str, db: Session):
         .filter(Prediction.job_id == job_id)
         .first())
     return {'future_prices': query[1], 'future_dates': query[2], 'symbol': query[3], 'initial_date': query[4]}
+
+def get_prediction_by_user(user_id: str, db: Session):
+    return db.query(Prediction).filter(Prediction.id_user == user_id).all()
 
 #Obtener el último ticker comprado por el usuario
 def get_last_approved_ticket(db: Session, user_id: int):

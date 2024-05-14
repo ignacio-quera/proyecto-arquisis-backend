@@ -28,11 +28,19 @@ async def get_ip():
         return {"error": "Failed to fetch IP address"}
     
 @router.get("/get-address")
-async def get_address(ip: str, db: Session = Depends(get_db)):
+async def get_address(db: Session = Depends(get_db)):
     try:
+        ip = ""
+        try:
+            async with httpx.AsyncClient(follow_redirects=True) as client:
+                response = await client.get("https://ipinfo.io/json")
+                data = response.json()
+                ip = data["ip"]
+        except Exception as e:
+            print(f"Error fetching IP address: {e}")
+            return {"error": "Failed to fetch IP address"}
         async with httpx.AsyncClient() as client:
             response = await client.get(f"https://ipinfo.io/{ip}/json")
-            
             # Check if the response is successful
             if response.status_code == 200:
                 data = response.json()
@@ -41,8 +49,10 @@ async def get_address(ip: str, db: Session = Depends(get_db)):
                     "longitud":"",
                     "latitud": ""}
                 
+                print("creando un usuario/ubicacion")
                 crud.create_user_location(db, event_data)
                 return {
+                    "ip": ip,
                     "city": data["city"],
                     "region": data["region"],
                     "country": data["country"],

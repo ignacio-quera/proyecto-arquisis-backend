@@ -103,12 +103,14 @@ class Prediction(Base):
     id_user = Column(String)
     job_id = Column(String)
     recommended_flights = Column(ARRAY(Integer))
+    datetime = Column(String)
     status = Column(String)
 
 class PredictionCreate(BaseModel):
     id_user : str
     job_id : str
     recommended_flights : list
+    datetime : str
     status : str
 
 class UserLocation(Base):

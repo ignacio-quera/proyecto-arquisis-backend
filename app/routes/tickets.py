@@ -4,7 +4,7 @@ import requests
 import uuid
 from app.db import crud
 from app.db.database import SessionLocal
-from worker_tasks import flight_prediction 
+# from worker_tasks import flight_prediction 
 import httpx
 
 def get_airport_coordinates(airport_code):
@@ -75,7 +75,6 @@ async def create_ticket(background_tasks: BackgroundTasks, event_data: dict = Bo
     try:
         id = uuid.uuid4()
         crud.create_ticket(db, event_data, id)
-        crud.create_user_location(db, {})
         event_data["request_id"] = str(id)
         service_url = "http://publisher_container:9001/requests"
         response = requests.post(service_url, json=event_data)
@@ -114,10 +113,28 @@ async def make_prediction(request: Request, db: Session = Depends(get_db)):
             flight_coords = get_airport_coordinates(flight['arrival_airport_id'])
             flight_details.append({'flight': flight, 'coordinates': flight_coords})
 
-        result = flight_prediction.delay(flight_details, user_location)
+        # result = flight_prediction.delay(flight_details, user_location)
 
         # Return a response with the Celery task ID
         return {"message": "Recommendation calculation in progress", "task_id": result.id}
+
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/prediction")
+async def get_prediction(request: Request, db: Session = Depends(get_db)):
+    user_id = request.headers.get("user")
+    try:
+        if not user_id:
+            raise ValueError("User ID is required in the headers")
+
+        prediction = crud.get_prediction(db, user_id)
+        if not prediction:
+            raise HTTPException(status_code=404, detail="No prediction found")
+
+        return prediction
 
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
