@@ -35,10 +35,10 @@ async def make_prediction(request: Request, db: Session = Depends(get_db)):
         
         flight_details = []
         for flight in upcoming_flights:
-            flight_coords = get_airport_coordinates(flight['arrival_airport_id'])
+            flight_coords = crud.get_airport_coordinates(flight['arrival_airport_id'])
             flight_details.append({'flight': flight, 'coordinates': flight_coords})
 
-        # result = flight_prediction.delay(flight_details, user_location)
+        result = flight_prediction.delay(flight_details, user_location)
 
         # Return a response with the Celery task ID
         return {"message": "Recommendation calculation in progress", "task_id": result.id}

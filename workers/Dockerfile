@@ -1,19 +1,20 @@
+# Dockerfile para producer
 FROM python:3.11
 
-# set work directory
+# Establece el directorio de trabajo
 WORKDIR /opt/
 
 # set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# install dependencies
+# Actualiza pip
 RUN pip install --upgrade pip
-COPY ./requirements.txt /opt/requirements.txt 
+
+# Copia y instala las dependencias
+COPY requirements.txt /opt/requirements.txt
 RUN chmod +x /opt/requirements.txt
-RUN pip install -r requirements.txt
+RUN pip install -r /opt/requirements.txt
 
-# copy project
+# Copia el código fuente
 COPY . /opt/
-
-EXPOSE 8000

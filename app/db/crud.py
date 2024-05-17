@@ -253,3 +253,31 @@ def get_upcoming_flights(db: Session, airport_id: str, departure_date: datetime)
         Flight.departure_time > departure_date,
         Flight.departure_time <= week_after_purchase
     ).order_by(Flight.departure_time.asc()).limit(20).all()
+
+
+import requests
+
+# Función para obtener las coordenadas del aeropuerto utilizando geocode.maps.co
+def get_airport_coordinates(airport_id: str):
+    try:
+        # propia clave de API
+        api_key = '6644d887417d1499696616bsid5ffd4'
+        
+        # URL de la API de geocodificación
+        url = f'https://geocode.maps.co/v1/geocode?q={airport_id}&apikey={api_key}'
+
+        # Realizar la solicitud GET a la API
+        response = requests.get(url)
+        data = response.json()
+
+        if data['status'] == 'OK':
+            # Extraer las coordenadas del resultado de la geocodificación
+            location = data['results'][0]['geometry']['location']
+            coordinates = (location['lat'], location['lng'])
+            return coordinates
+        else:
+            return None
+    except Exception as e:
+        print(f"Error al obtener las coordenadas del aeropuerto: {str(e)}")
+        return None
+
