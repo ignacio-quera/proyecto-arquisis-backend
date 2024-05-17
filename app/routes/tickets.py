@@ -46,6 +46,7 @@ def get_airport_coordinates(airport_name):
 
 
 PUBLISHER_URL = "http://localhost:9001"
+FRONTEND_URL = "http://localhost:3000"
 
 router = APIRouter()
 # Dependency to get the database session
@@ -69,14 +70,14 @@ async def read_tickets(
     return tickets
 
 @router.post("/create/")
-async def create_ticket(background_tasks: BackgroundTasks, event_data: dict = Body(...), db: Session = Depends(get_db)):
+async def create_ticket(event_data: dict = Body(...), db: Session = Depends(get_db)):
     print("creando un ticket")
     print(event_data)
     try:
         request_id = uuid.uuid4()
         crud.create_ticket(db, event_data, request_id)
         event_data["request_id"] = str(request_id)
-        return_url = "http://localhost:3000/webpayredirect"
+        return_url = f"{FRONTEND_URL}/webpayredirect"
         tx = Transaction(WebpayOptions(IntegrationCommerceCodes.WEBPAY_PLUS, IntegrationApiKeys.WEBPAY, IntegrationType.TEST))
         result = tx.create(str(random.randrange(1000000, 99999999)), str(event_data["request_id"]), str(event_data["amount"]), return_url)
         print(result)
@@ -94,10 +95,17 @@ def update_ticket(event_data: dict = Body(...), db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+@router.delete("/delete/{ticket_id}")
+def delete_ticket(event_data: dict = Body(...), db: Session = Depends(get_db)):
+    print("borrando un ticket")
+    try:
+        ticket_id = event_data["request_id"]
+        crud.delete_ticket(db, ticket_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
 @router.get("/webpay/")
 async def webpay_confirmation(transbank_response: dict):
-    # Example:
-    # payment_status = transbank_sdk.handle_payment_callback(transbank_response)
     print(transbank_response)
     payment_status = {"status": "success"}
     print("confirmacion de webpay")

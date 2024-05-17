@@ -167,6 +167,10 @@ def get_tickets_by_user_id(db: Session, user_id: int, skip: int = 0, limit: int 
         .all()
     )
 
+def delete_ticket(db: Session, ticket_id: uuid.UUID):
+    db.query(Ticket).filter(Ticket.id == ticket_id).delete()
+    db.commit()
+
 # # Creamos usuarios
 # def create_user(db: Session, user: Users):
 #     db.add(user)

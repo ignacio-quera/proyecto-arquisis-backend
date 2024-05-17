@@ -2,6 +2,7 @@ import requests
 import json
 import os
 
+local_group_id = 23
 
 def handleFlightInfo(data):
     try:
@@ -72,11 +73,14 @@ def handleTicketValidation(data):
             "seller": seller,
             "valid": "valid" if valid else "invalid"
         }
-        response = requests.patch(os.getenv("API_URL")+"/tickets/update/", json=json_data)
-        if response.status_code == 200:
-            print("Mensaje enviado a la API con éxito.")
+        if group_id == local_group_id:
+            response = requests.patch(os.getenv("API_URL")+"/tickets/update/", json=json_data)
+            if response.status_code == 200:
+                print("Mensaje enviado a la API con éxito.")
+            else:
+                print("Error al enviar el mensaje a la API:", response.text)
         else:
-            print("Error al enviar el mensaje a la API:", response.text)
+            print("Validacion para otro grupo")
     except Exception as e:
         print("Error al manejar el mensaje:", e)
     pass
