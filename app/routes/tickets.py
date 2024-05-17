@@ -83,6 +83,8 @@ async def create_ticket(event_data: dict = Body(...), db: Session = Depends(get_
         buy_order = str(random.randrange(1000000, 99999999))
         try:
             result = tx.create(buy_order, event_data["request_id"], event_data["amount"], return_url)
+            event_data["token"] = result["token"]
+            requests.post(f'{PUBLISHER_URL}/requests', json=event_data)
             print(result)
             return result
         except TransbankError as e:

@@ -15,7 +15,8 @@ HOST = os.getenv("HOST")
 PORT = int(os.getenv("PORT"))
 USER = os.getenv("USER")
 PASSWORD = os.getenv("PASSWORD")
-TOPIC = "flights/requests"
+TOPIC_REQUEST = "flights/requests"
+TOPIC_VALIDATION = "flights/validations"
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
@@ -52,13 +53,30 @@ async def publish(event_data: dict = Body(...)):
             "arrival_airport": event_data["arrival_airport_id"],
             "departure_time": event_data["time_departure"],
             "datetime": time.strftime('%Y-%m-%d %H:%M:%S'),
-            "deposit_token": "",
+            "deposit_token": event_data["token"],
             "quantity": event_data["amount"],
             "seller": 0,
         }
         print(request)
         request = json.dumps(request)
-        client.publish(TOPIC, request)
+        client.publish(TOPIC_REQUEST, request)
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.post("/validations")
+async def publish(event_data: dict = Body(...)):
+    print("Publishing message")
+    try:
+        request = {
+            "request_id": event_data["request_id"],
+            "group_id": 23,
+            "seller": 0,
+            "valid": event_data["valid"]
+        }
+        print(request)
+        request = json.dumps(request)
+        client.publish(TOPIC_VALIDATION, request)
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail=str(e))
