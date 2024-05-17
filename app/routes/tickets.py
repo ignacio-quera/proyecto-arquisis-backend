@@ -56,6 +56,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 @router.get("/")
 async def read_tickets(
     request: Request,
@@ -77,11 +78,16 @@ async def create_ticket(event_data: dict = Body(...), db: Session = Depends(get_
         request_id = uuid.uuid4()
         crud.create_ticket(db, event_data, request_id)
         event_data["request_id"] = str(request_id)
-        return_url = f"{FRONTEND_URL}/webpayredirect"
+        return_url = f"{FRONTEND_URL}/compracompletada"
         tx = Transaction(WebpayOptions(IntegrationCommerceCodes.WEBPAY_PLUS, IntegrationApiKeys.WEBPAY, IntegrationType.TEST))
-        result = tx.create(str(random.randrange(1000000, 99999999)), str(event_data["request_id"]), str(event_data["amount"]), return_url)
-        print(result)
-        return result
+        buy_order = str(random.randrange(1000000, 99999999))
+        try:
+            result = tx.create(buy_order, event_data["request_id"], event_data["amount"], return_url)
+            print(result)
+            return result
+        except TransbankError as e:
+            print(e.message)
+            return {"error": e.message}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
@@ -94,13 +100,32 @@ def update_ticket(event_data: dict = Body(...), db: Session = Depends(get_db)):
         crud.update_ticket(db, ticket_id, status)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
-@router.delete("/delete/{ticket_id}")
-def delete_ticket(event_data: dict = Body(...), db: Session = Depends(get_db)):
+
+@router.get("/")
+async def read_tickets(
+    request: Request,
+    db: Session = Depends(get_db)
+    ):
+    headers = dict(request.headers)
+    user_id = headers.get("user")
+    tickets = crud.get_tickets_by_user_id(db, user_id)
+
+    if not tickets:
+        return f"No hay ningún ticket"
+    return tickets
+
+@router.delete("/delete")
+def delete_ticket(
+    request: Request,
+    db: Session = Depends(get_db)):
     print("borrando un ticket")
     try:
-        ticket_id = event_data["request_id"]
+        ticket_id = request.headers["ticket_id"]
+        print(ticket_id, type(ticket_id))
+        id_user = request.headers["id_user"]
         crud.delete_ticket(db, ticket_id)
+        tickets = crud.get_tickets_by_user_id(db, id_user)
+        return tickets
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
