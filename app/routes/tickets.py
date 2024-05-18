@@ -45,7 +45,7 @@ def get_airport_coordinates(airport_name):
         raise Exception(f"API request failed with status {response.status_code}: {response.text}")
 
 
-PUBLISHER_URL = "http://localhost:9001"
+PUBLISHER_URL = "http://publisher_container:9001"
 FRONTEND_URL = "http://localhost:3000"
 
 router = APIRouter()
