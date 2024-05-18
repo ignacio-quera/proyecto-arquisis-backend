@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from transbank.webpay.webpay_plus.transaction import Transaction, WebpayOptions, IntegrationCommerceCodes, IntegrationApiKeys
 from transbank.common.integration_type import IntegrationType
 from transbank.error.transbank_error import TransbankError
+from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 import requests
 import random
 import uuid
@@ -85,7 +86,6 @@ async def create_ticket(event_data: dict = Body(...), db: Session = Depends(get_
             result = tx.create(buy_order, event_data["request_id"], event_data["amount"], return_url)
             event_data["token"] = result["token"]
             requests.post(f'{PUBLISHER_URL}/requests', json=event_data)
-            print(result)
             return result
         except TransbankError as e:
             print(e.message)
@@ -140,39 +140,30 @@ async def webpay_confirmation(transbank_response: dict):
 
 
 @router.post('/webpayconfirm')
-async def webpay_confirm(token_ws: str, db: Session = Depends(get_db)):
+def webpay_confirm(event_data: dict = Body(...), db: Session = Depends(get_db)):
     try:
+        print("confirmacion de webpay")
         transaction = Transaction(WebpayOptions(IntegrationCommerceCodes.WEBPAY_PLUS, IntegrationApiKeys.WEBPAY, IntegrationType.TEST))
-        response = await transaction.commit(token_ws)
-        print(response)
-        message = {}
+        token_ws = event_data["token_ws"]
 
-        if response.status == 'AUTHORIZED':
+        if not token_ws:
+            return {'message': 'Transaction cancelled by user'}
+        response = transaction.commit(token_ws) 
+        if response["status"] == 'AUTHORIZED':
             message = {
-                'request_id': response.session_id,
+                'request_id': response["session_id"],
                 'valid': True,
             }
-            crud.update_ticket(db, response.session_id, "valid")
+            crud.update_ticket(db, response["session_id"], "valid")
             requests.post(f'{PUBLISHER_URL}/validations', json=message)
             return {'message': 'Transaction confirmed'}
         else:
-            crud.update_ticket(db, response.session_id, "invalid")
+            crud.update_ticket(db, response["session_id"], "invalid")
             message = {
-                'request_id': response.session_id,
+                'request_id': response["session_id"],
                 'valid': False,
             }
             requests.post(f'{PUBLISHER_URL}/validations', json=message)
             return {'message': 'Transaction cancelled'}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    
-@router.post("/validation/")
-async def validate_ticket(event_data: dict = Body(...), db: Session = Depends(get_db)):
-    print("validando un ticket")
-    try:
-        ticket_id = event_data["request_id"]
-        service_url = "http://publisher_container:9001/requests"
-        response = requests.post(service_url, json=event_data)
-        crud.update_ticket(db, ticket_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
