@@ -1,0 +1,41 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches:
+      - cd  # Ajusta esto a la rama que deseas desplegar
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registry: public.ecr.aws/z7c1v8x9/flightappbackend # Reemplaza con tu ECR URI público
+
+      - name: Build, tag, and push Docker image to Amazon ECR
+        env:
+          ECR_REGISTRY: public.ecr.aws/z7c1v8x9/flightappbackend
+          ECR_REPOSITORY: flightappbackend
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: Deploy to AWS
+        uses: aws-actions/aws-cli-action@v2
+        with:
+          aws-access-key-id: AKIA4MTWKZZHLK2Q34XQ
+          aws-secret-access-key: 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
+          aws-region: us-east-2 # Reemplaza con tu región AWS
+          command: |
+            aws deploy create-deployment \
+              --application-name <your-codedeploy-application-name> \
+              --deployment-group-name <your-codedeploy-deployment-group-name> \
+              --revision "revisionType=AppSpecContent,appSpecContent={\"version\":\"0.0\",\"Resources\":[{\"myEC2Instance\":{\"Type\":\"AWS::EC2::Instance\",\"Properties\":{\"Image\":\"$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG\"}}}]}"
