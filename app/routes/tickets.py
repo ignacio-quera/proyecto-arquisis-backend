@@ -6,6 +6,8 @@ from transbank.error.transbank_error import TransbankError
 import requests
 import random
 import uuid
+import boto3
+import json
 from app.db import crud
 from app.db.database import SessionLocal
 
@@ -137,6 +139,22 @@ async def webpay_confirmation(transbank_response: dict):
     print("confirmacion de webpay")
     return payment_status
 
+def send_email_via_lambda(subject: str, body: str, recipient: str):
+    print("mandando mail via Lambda")
+    lambda_client = boto3.client('lambda', region_name='us-east-2')  # Ajusta la región según tu configuración
+    payload = {
+        'subject': subject,
+        'body': body,
+        'recipient': recipient
+    }
+    print(payload)
+    response = lambda_client.invoke(
+        FunctionName='arn:aws:lambda:us-east-2:851725438542:function:MailSender',  # Reemplaza con el ARN de tu función
+        InvocationType='RequestResponse',
+        Payload=json.dumps(payload)
+    )
+    print(response)
+    return json.loads(response['Payload'].read())
 
 @router.post('/webpayconfirm')
 def webpay_confirm(event_data: dict = Body(...), db: Session = Depends(get_db)):
@@ -148,7 +166,13 @@ def webpay_confirm(event_data: dict = Body(...), db: Session = Depends(get_db)):
         if not token_ws:
             return {'message': 'Transaction cancelled by user'}
         response = transaction.commit(token_ws) 
+        #AGREGAR LO DEL MAIL SENDER
         if response["status"] == 'AUTHORIZED':
+            subject = "Transaction Confirmed"
+            body = f"Your transaction with ID {response['session_id']} has been confirmed."
+            recipient = "ange.gazitua@uc.cl"  # Cambia esto al correo del destinatario
+            send_email_via_lambda(subject, body, recipient)
+
             message = {
                 'request_id': response["session_id"],
                 'valid': True,

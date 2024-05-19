@@ -10,7 +10,7 @@ services:
     networks:
       - mqtt-network
       - app-network
-    container_name: fastapi_app
+    container_name: fastapi_app_e2
     volumes:
       - ./app:/app/app
     depends_on:
@@ -26,7 +26,7 @@ services:
     networks:
       - mqtt-network
       - app-network
-    container_name: fastapi_app_2
+    container_name: fastapi_app_2_e2
     volumes:
       - ./app:/app/app
     depends_on:
@@ -42,7 +42,7 @@ services:
     networks:
       - mqtt-network
       - app-network
-    container_name: fastapi_app_3
+    container_name: fastapi_app_3_e2
     volumes:
       - ./app:/app/app
     depends_on:
@@ -50,13 +50,13 @@ services:
     
   db:
     image: postgres:latest
-    container_name: db
+    container_name: db_2
     networks:
       - app-network
     expose:
       - "5432"
     restart: always
-    hostname: db
+    hostname: db_2
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
