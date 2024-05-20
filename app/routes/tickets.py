@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Body, BackgroundTasks, Request
 from sqlalchemy.orm import Session
+from botocore.exceptions import ClientError
 from transbank.webpay.webpay_plus.transaction import Transaction, WebpayOptions, IntegrationCommerceCodes, IntegrationApiKeys
 from transbank.common.integration_type import IntegrationType
 from transbank.error.transbank_error import TransbankError
@@ -170,7 +171,7 @@ def webpay_confirm(event_data: dict = Body(...), db: Session = Depends(get_db)):
         if response["status"] == 'AUTHORIZED':
             subject = "Transaction Confirmed"
             body = f"Your transaction with ID {response['session_id']} has been confirmed."
-            recipient = "ange.gazitua@uc.cl"  # Cambia esto al correo del destinatario
+            recipient = "flightmailer@gmail.com"  # Cambia esto al correo del destinatario
             send_email_via_lambda(subject, body, recipient)
 
             message = {
@@ -190,3 +191,4 @@ def webpay_confirm(event_data: dict = Body(...), db: Session = Depends(get_db)):
             return {'message': 'Transaction cancelled'}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
