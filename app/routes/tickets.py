@@ -12,7 +12,6 @@ import json
 from app.db import crud
 from app.db.database import SessionLocal
 
-
 def get_airport_coordinates(airport_code):
     base_url = "https://geocode.maps.co"
     params = {'q': airport_code}

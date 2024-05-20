@@ -4,9 +4,10 @@ import requests
 import uuid
 from app.db import crud
 from app.db.database import SessionLocal
+from celery_config.tasks import flight_prediction
 
 router = APIRouter()
-result = {};
+result = {}
 # Dependency to get the database session
 def get_db():
     db = SessionLocal()
