@@ -18,7 +18,11 @@ def haversine(lat1, lon1, lat2, lon2):
     return km
 
 @shared_task
-def flight_prediction(flight_details, user_coordinates):
+def flight_prediction(data):
+
+    flight_details = data["flight_details"],
+    user_coordinates = data["user_coordinates"]
+
 #     Se calculan la distancia de todos los vuelos encontrados en el punto anterior
 # ( flight_coord ) con respecto a la ubicación de la dirección ip del usuario ( ip_coord ), y se
 # ordenan en base al precio y distancia según la siguiente fórmula:
