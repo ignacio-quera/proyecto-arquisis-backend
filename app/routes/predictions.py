@@ -4,7 +4,7 @@ import requests
 import uuid
 from app.db import crud
 from app.db.database import SessionLocal
-from celery_config.tasks import flight_prediction
+from workers.celery_config.tasks import flight_prediction
 
 router = APIRouter()
 result = {}

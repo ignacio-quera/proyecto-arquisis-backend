@@ -11,6 +11,8 @@ import boto3
 import json
 from app.db import crud
 from app.db.database import SessionLocal
+import httpx
+
 
 def get_airport_coordinates(airport_code):
     base_url = "https://geocode.maps.co"
@@ -157,7 +159,7 @@ def send_email_via_lambda(subject: str, body: str, recipient: str):
     return json.loads(response['Payload'].read())
 
 @router.post('/webpayconfirm')
-def webpay_confirm(event_data: dict = Body(...), db: Session = Depends(get_db)):
+async def webpay_confirm(event_data: dict = Body(...), db: Session = Depends(get_db)):
     try:
         print("confirmacion de webpay")
         transaction = Transaction(WebpayOptions(IntegrationCommerceCodes.WEBPAY_PLUS, IntegrationApiKeys.WEBPAY, IntegrationType.TEST))
@@ -173,13 +175,18 @@ def webpay_confirm(event_data: dict = Body(...), db: Session = Depends(get_db)):
             recipient = "flightmailer@gmail.com"  # Cambia esto al correo del destinatario
             send_email_via_lambda(subject, body, recipient)
 
+            # Llamada a la ruta make_prediction
+            async with httpx.AsyncClient() as client:
+                make_prediction_response = await client.post("http://localhost:8000/make_prediction", json={"session_id": response["session_id"]})
+                make_prediction_result = make_prediction_response.json()
+
             message = {
                 'request_id': response["session_id"],
                 'valid': True,
             }
             crud.update_ticket(db, response["session_id"], "valid")
             requests.post(f'{PUBLISHER_URL}/validations', json=message)
-            return {'message': 'Transaction confirmed'}
+            return {'message': 'Transaction confirmed', 'make_prediction_result': make_prediction_result}
         else:
             crud.update_ticket(db, response["session_id"], "invalid")
             message = {
