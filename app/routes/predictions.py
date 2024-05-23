@@ -19,11 +19,11 @@ def get_db():
 
 @router.post("/make_prediction")
 async def make_prediction(request: Request, db: Session = Depends(get_db)):
-    user_id = request.headers.get("user")
     print("adentro de make_prediction")
     try:
         data = await request.json()
         print(data)
+        user_id = data["user_id"]
         print(user_id)
         print(type(user_id))
         print("entramos al try")

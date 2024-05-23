@@ -68,7 +68,7 @@ async def webpay_confirm(event_data: dict = Body(...), db: Session = Depends(get
         transaction = Transaction(WebpayOptions(IntegrationCommerceCodes.WEBPAY_PLUS, IntegrationApiKeys.WEBPAY, IntegrationType.TEST))
         token_ws = event_data["token_ws"]
         mail = event_data["mail"]
-        user_id = event_data["user_id"]["user_id"]
+        user_id = event_data["user_id"]
         print(mail)
         if not token_ws:
             return {'message': 'Transaction cancelled by user'}
