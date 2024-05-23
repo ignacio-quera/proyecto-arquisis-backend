@@ -7,7 +7,6 @@ from transbank.error.transbank_error import TransbankError
 import requests
 import random
 import uuid
-import boto3
 import json
 from app.db import crud
 from app.db.database import SessionLocal
@@ -140,62 +139,47 @@ async def webpay_confirmation(transbank_response: dict):
     payment_status = {"status": "success"}
     print("confirmacion de webpay webpay_confirmation")
     return payment_status
+    
+# @router.post('/webpayconfirm')
+# async def webpay_confirm(event_data: dict = Body(...), db: Session = Depends(get_db)):
+#     try:
+#         print("confirmacion de webpay en tickets")
+#         transaction = Transaction(WebpayOptions(IntegrationCommerceCodes.WEBPAY_PLUS, IntegrationApiKeys.WEBPAY, IntegrationType.TEST))
+#         token_ws = event_data["token_ws"]
 
-def send_email_via_lambda(subject: str, body: str, recipient: str):
-    print("mandando mail via Lambda")
-    lambda_client = boto3.client('lambda', region_name='us-east-2')  # Ajusta la región según tu configuración
-    payload = {
-        'subject': subject,
-        'body': body,
-        'recipient': recipient
-    }
-    print(payload)
-    response = lambda_client.invoke(
-        FunctionName='arn:aws:lambda:us-east-2:851725438542:function:MailSender',  # Reemplaza con el ARN de tu función
-        InvocationType='RequestResponse',
-        Payload=json.dumps(payload)
-    )
-    print(response)
-    return json.loads(response['Payload'].read())
+#         if not token_ws:
+#             return {'message': 'Transaction cancelled by user'}
+#         response = transaction.commit(token_ws) 
+#         if response["status"] == 'AUTHORIZED':
+#             # enviar mail al usuario
+#             to_email = 'flightmailer@gmail.com'
+#             subject = 'Confirmación de transacción exitosa'
+#             body = 'Su transacción ha sido confirmada con éxito.'
+            
+#             print("VAMOS A MANDAR UN MAIL")
+#             send_email(to_email, subject, body)
 
-@router.post('/webpayconfirm')
-async def webpay_confirm(event_data: dict = Body(...), db: Session = Depends(get_db)):
-    try:
-        print("confirmacion de webpay")
-        transaction = Transaction(WebpayOptions(IntegrationCommerceCodes.WEBPAY_PLUS, IntegrationApiKeys.WEBPAY, IntegrationType.TEST))
-        token_ws = event_data["token_ws"]
+#             # Llamada a la ruta make_prediction
+#             async with httpx.AsyncClient() as client:
+#                 make_prediction_response = await client.post("http://localhost:8000/make_prediction", json={"session_id": response["session_id"]})
+#                 make_prediction_result = make_prediction_response.json()
+#                 print(make_prediction_result)
 
-        if not token_ws:
-            return {'message': 'Transaction cancelled by user'}
-        response = transaction.commit(token_ws) 
-        #AGREGAR LO DEL MAIL SENDER
-        if response["status"] == 'AUTHORIZED':
-            subject = "Transaction Confirmed"
-            body = f"Your transaction with ID {response['session_id']} has been confirmed."
-            recipient = "flightmailer@gmail.com"  # Cambia esto al correo del destinatario
-            send_email_via_lambda(subject, body, recipient)
-            print("holaaaaaa")
-            # Llamada a la ruta make_prediction
-            async with httpx.AsyncClient() as client:
-                make_prediction_response = await client.post("http://localhost:8000/make_prediction", json={"session_id": response["session_id"]})
-                make_prediction_result = make_prediction_response.json()
-                print(make_prediction_result)
-
-            message = {
-                'request_id': response["session_id"],
-                'valid': True,
-            }
-            crud.update_ticket(db, response["session_id"], "valid")
-            requests.post(f'{PUBLISHER_URL}/validations', json=message)
-            return {'message': 'Transaction confirmed', 'make_prediction_result': make_prediction_result}
-        else:
-            crud.update_ticket(db, response["session_id"], "invalid")
-            message = {
-                'request_id': response["session_id"],
-                'valid': False,
-            }
-            requests.post(f'{PUBLISHER_URL}/validations', json=message)
-            return {'message': 'Transaction cancelled'}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+#             message = {
+#                 'request_id': response["session_id"],
+#                 'valid': True,
+#             }
+#             crud.update_ticket(db, response["session_id"], "valid")
+#             requests.post(f'{PUBLISHER_URL}/validations', json=message)
+#             return {'message': 'Transaction confirmed', 'make_prediction_result': make_prediction_result}
+#         else:
+#             crud.update_ticket(db, response["session_id"], "invalid")
+#             message = {
+#                 'request_id': response["session_id"],
+#                 'valid': False,
+#             }
+#             requests.post(f'{PUBLISHER_URL}/validations', json=message)
+#             return {'message': 'Transaction cancelled'}
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
 

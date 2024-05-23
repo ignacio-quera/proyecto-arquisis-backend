@@ -45,25 +45,31 @@ async def make_prediction(request: Request, db: Session = Depends(get_db)):
         upcoming_flights = crud.get_upcoming_flights(db, airport_name, departure_date)  
         print(upcoming_flights)
         
-        # user_location = crud.get_user_location(db, user_id)
-        # print(user_location)
+        print("user location")
+        user_location = crud.get_user_location(db, user_id)
+        print(user_location)
         
         flight_details = []
         for flight in upcoming_flights:
-            print(flight)
             flight_coords = crud.get_airport_coordinates(flight.arrival_airport_id)
-            print(flight_coords)
-        #     flight_details.append({'flight': flight, 'coordinates': flight_coords})
-        # data = {"flight_details": flight_details, "user_location": user_location}
+            flight_details.append({'flight': flight, 'coordinates': flight_coords})
+        data = {"flight_details": flight_details, "user_location": user_location}
+        print(data)
 
         # #result = flight_prediction.delay(flight_details, user_location)
-        # async with httpx.AsyncClient(timeout=30.0) as client:
-        #     response = await client.post("http://producer:8000/job", json=data)
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            print("llamamos a post")
+            url = "http://producer:8000/job"
+            #response = await client.get("http://producer:8000/job")
+            response = await client.post("http://producer:8000/job", json=data)
 
+        print("WE GOT AN ANSWER")
+        print(response)
         # # Return a response with the Celery task ID
-        # #return {"message": "Recommendation calculation in progress", "task_id": result.id}
+        return {"message": "Recommendation calculation in progress", "task_id": result.id}
         # if response.status_code == 200:
         #     data = response.json()
+        #     print(data)
         #     job_id = data["job_id"]
         #     #(db: Session, user_id: str, job_id:str,  recommended_flights: list
         #     crud.create_prediction(db, user_id, job_id, data)

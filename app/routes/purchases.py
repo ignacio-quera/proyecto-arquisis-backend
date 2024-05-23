@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Body, BackgroundTasks, Request
 from sqlalchemy.orm import Session
-from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
 from transbank.webpay.webpay_plus.transaction import Transaction, WebpayOptions, IntegrationCommerceCodes, IntegrationApiKeys
 from pydantic import EmailStr, BaseModel
 from transbank.common.integration_type import IntegrationType
@@ -8,29 +7,17 @@ from app.db import crud
 import requests
 from app.db.database import SessionLocal
 from typing import List
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 PUBLISHER_URL = "http://publisher_container:9001"
 
+SMTP_SERVER = 'smtp.gmail.com'
+SMTP_PORT = 587  # Puerto para TLS
+SMTP_USERNAME = 'flightmailer@gmail.com'
+SMTP_PASSWORD = 'npojawaqqasjzvoo'
 
-class EmailSchema(BaseModel):
-    email: List[EmailStr]
-
-
-conf = ConnectionConfig(
-    MAIL_USERNAME = "flightmailer@gmail.com",
-    MAIL_PASSWORD = "flightclave1",
-    MAIL_FROM = "flightmailer@gmail.com",
-    MAIL_PORT = 587,
-    MAIL_SERVER = "smtp.gmail.com",
-    MAIL_FROM_NAME="Flight Mailer",
-    MAIL_STARTTLS = True,
-    MAIL_SSL_TLS = False,
-    USE_CREDENTIALS = True,
-    VALIDATE_CERTS = True
-)
-
-
-fm = FastMail(conf)
 
 router = APIRouter()
 # Dependency to get the database session
@@ -42,28 +29,53 @@ def get_db():
         db.close()
 
 
-async def send_email(user_email: str, subject: str, message: str):
-    email_message = MessageSchema(
-        subject=subject,
-        recipients=[user_email],  # Lista de destinatarios
-        body=message,
-        subtype="html"
-    )
-    await fm.send_message(email_message)
+# async def send_email(user_email: str, subject: str, message: str):
+#     email_message = MessageSchema(
+#         subject=subject,
+#         recipients=[user_email],  # Lista de destinatarios
+#         body=message,
+#         subtype="html"
+#     )
+#     await fm.send_message(email_message)
+
+def send_email(to_email, subject, body):
+    print("funcion send_mail")
+    try:
+        print("try")
+        msg = MIMEMultipart()
+        msg['From'] = SMTP_USERNAME
+        msg['To'] = to_email
+        msg['Subject'] = subject
+
+        msg.attach(MIMEText(body, 'plain'))
+
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+        server.starttls()
+        server.login(SMTP_USERNAME, SMTP_PASSWORD)
+        server.send_message(msg)
+        server.quit()
+        return True
+    except Exception as e:
+        print(f"Error al enviar correo: {e}")
+        return False
 
 @router.post('/webpayconfirm')
 async def webpay_confirm(event_data: dict = Body(...), db: Session = Depends(get_db)):
     try:
         print("confirmacion de webpay")
+        print(event_data)
         transaction = Transaction(WebpayOptions(IntegrationCommerceCodes.WEBPAY_PLUS, IntegrationApiKeys.WEBPAY, IntegrationType.TEST))
         token_ws = event_data["token_ws"]
         mail = event_data["mail"]
+        print(mail)
         try:
-            await send_email(mail, "Confirmación de Pago", "Su pago ha sido confirmado exitosamente.")
+            print("sending email")
+            send_email(mail, "Confirmación de Pago", "Su pago ha sido confirmado exitosamente.")
         except Exception as e:
             print("Error sending email: ", e)
         if not token_ws:
             return {'message': 'Transaction cancelled by user'}
+        
         response = transaction.commit(token_ws)
         if response["status"] == 'AUTHORIZED':
             message = {
@@ -80,7 +92,6 @@ async def webpay_confirm(event_data: dict = Body(...), db: Session = Depends(get
                 'valid': False,
             }
             requests.post(f'{PUBLISHER_URL}/validations', json=message)
-            await send_email("correo_del_usuario@example.com", "Error en Pago", "Su transacción ha sido rechazada.")
             return {'message': 'Transaction cancelled'}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

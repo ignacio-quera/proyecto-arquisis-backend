@@ -194,11 +194,16 @@ def delete_ticket(db: Session, ticket_id: uuid.UUID):
 
 def create_user_location(db: Session, event_data: dict):
     try:
+        print(event_data)
+        print(event_data["user_id"])
+        print(event_data["longitud"])
+        print(event_data["latitud"])
         userLocation = UserLocation(
             id_user= event_data["user_id"],
             longitud= event_data["longitud"],
             latitude= event_data["latitud"]
         )
+        print(userLocation)
         db.add(userLocation)
         db.commit()
         db.refresh(userLocation)
@@ -290,16 +295,12 @@ def get_airport_coordinates(airport_id: str):
         # propia clave de API
         api_key = '6644d887417d1499696616bsid5ffd4'
         
-        print('url')
         # URL de la API de geocodificación
         url = f'https://geocode.maps.co/search?q={airport_id}&apikey={api_key}'
 
-        print('solicitud get')
         # Realizar la solicitud GET a la API
         response = requests.get(url)
-        print(response)
         data = response.json()
-        print(data)
 
         # Buscar el objeto de tipo "aerodrome" y extraer su latitud y longitud
 
