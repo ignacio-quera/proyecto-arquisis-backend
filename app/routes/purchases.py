@@ -10,6 +10,7 @@ from typing import List
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import httpx
 
 PUBLISHER_URL = "http://publisher_container:9001"
 
@@ -67,23 +68,34 @@ async def webpay_confirm(event_data: dict = Body(...), db: Session = Depends(get
         transaction = Transaction(WebpayOptions(IntegrationCommerceCodes.WEBPAY_PLUS, IntegrationApiKeys.WEBPAY, IntegrationType.TEST))
         token_ws = event_data["token_ws"]
         mail = event_data["mail"]
+        user_id = event_data["user_id"]["user_id"]
         print(mail)
-        try:
-            print("sending email")
-            send_email(mail, "Confirmación de Pago", "Su pago ha sido confirmado exitosamente.")
-        except Exception as e:
-            print("Error sending email: ", e)
         if not token_ws:
             return {'message': 'Transaction cancelled by user'}
         
         response = transaction.commit(token_ws)
         if response["status"] == 'AUTHORIZED':
+            #enviar correo
+            try:
+                print("sending email")
+                send_email(mail, "Confirmación de Pago", "Su pago ha sido confirmado exitosamente.")
+            except Exception as e:
+                print("Error sending email: ", e)
             message = {
                 'request_id': response["session_id"],
                 'valid': True,
             }
             crud.update_ticket(db, response["session_id"], "valid")
             requests.post(f'{PUBLISHER_URL}/validations', json=message)
+
+            #Hacer predicción
+            async with httpx.AsyncClient() as client:
+                print("HAGAMOS UNA PREDCICCION")
+                make_prediction_response = await client.post("http://localhost:8000/predictions/make_prediction", json={"user_id": user_id})
+                make_prediction_result = make_prediction_response.json()
+                print("PREDICCION REALIZADA")
+                print(make_prediction_result)
+
             return {'message': 'Transaction confirmed'}
         else:
             crud.update_ticket(db, response["session_id"], "invalid")
