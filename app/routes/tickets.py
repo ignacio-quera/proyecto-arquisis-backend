@@ -138,7 +138,7 @@ def delete_ticket(
 async def webpay_confirmation(transbank_response: dict):
     print(transbank_response)
     payment_status = {"status": "success"}
-    print("confirmacion de webpay")
+    print("confirmacion de webpay webpay_confirmation")
     return payment_status
 
 def send_email_via_lambda(subject: str, body: str, recipient: str):
@@ -174,11 +174,12 @@ async def webpay_confirm(event_data: dict = Body(...), db: Session = Depends(get
             body = f"Your transaction with ID {response['session_id']} has been confirmed."
             recipient = "flightmailer@gmail.com"  # Cambia esto al correo del destinatario
             send_email_via_lambda(subject, body, recipient)
-
+            print("holaaaaaa")
             # Llamada a la ruta make_prediction
             async with httpx.AsyncClient() as client:
                 make_prediction_response = await client.post("http://localhost:8000/make_prediction", json={"session_id": response["session_id"]})
                 make_prediction_result = make_prediction_response.json()
+                print(make_prediction_result)
 
             message = {
                 'request_id': response["session_id"],

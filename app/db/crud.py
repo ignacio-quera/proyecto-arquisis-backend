@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, update  # Importar func desde SQLAlchemy
 from .models import Airport, Flight, Ticket, Users, Prediction, UserLocation
 from datetime import datetime, date, timedelta
+from sqlalchemy import cast, DateTime
+from datetime import datetime, timedelta
 
 
 #Función que recibe la información del evento y crea los vuelos y los aeropuertos
@@ -212,7 +214,7 @@ def update_user_location(db: Session, user_id: int, longitud: str, latitude: str
     db.query(UserLocation).filter(UserLocation.id_user == user_id).update({UserLocation.latitude: latitude})
     db.commit() 
 
-def get_user_location(db: Session, user_id: int):
+def get_user_location(db: Session, user_id: str):
     return db.query(UserLocation).filter(UserLocation.id_user == user_id).all()
 
 def create_prediction(db: Session, user_id: str, job_id:str,  recommended_flights: list):
@@ -250,19 +252,33 @@ def get_prediction_by_user(user_id: str, db: Session):
 #Obtener el último ticker comprado por el usuario
 def get_last_approved_ticket(db: Session, user_id: int):
     return db.query(Ticket).filter(
-        Ticket.user_id == user_id,
-        Ticket.status == "validated"
+        Ticket.id_user == user_id,
+        Ticket.status == "valid"
     ).order_by(Ticket.datetime.desc()).first()
 
 # Obtener los ultimos 20 vuelos, respecto a la fecha de salida, que salgan dentro de la semana
 # después de la compra, que vayan desde el aeropuerto de destino encontrado en el punto 2. 
-def get_upcoming_flights(db: Session, airport_id: str, departure_date: datetime):
-    week_after_purchase = departure_date + timedelta(days=7)
+def get_upcoming_flights(db: Session, airport_id: str, departure_date: str):
+    #week_after_purchase = departure_date + timedelta(days=7)
     return db.query(Flight).filter(
-        Flight.departure_airport_id == airport_id,
-        Flight.departure_time > departure_date,
-        Flight.departure_time <= week_after_purchase
-    ).order_by(Flight.departure_time.asc()).limit(20).all()
+        Flight.departure_airport_id == airport_id
+        #Flight.time_departure > departure_date
+        #Flight.time_departure <= week_after_purchase
+    ).order_by(Flight.time_departure.asc()).limit(20).all()
+
+# def get_upcoming_flights(db: Session, airport_id: str, departure_date: str):
+#     # Convierte la cadena de fecha y hora en un objeto datetime
+#     departure_datetime = datetime.strptime(departure_date, "%Y-%m-%d %H:%M")
+    
+#     # Calcula la fecha una semana después de la fecha de salida
+#     week_after_departure = departure_datetime + timedelta(days=7)
+    
+#     # Consulta la base de datos usando los objetos datetime y convierte las cadenas a datetime
+#     return db.query(Flight).filter(
+#         Flight.departure_airport_id == airport_id,
+#         cast(Flight.time_departure, DateTime) > departure_datetime,
+#         cast(Flight.time_departure, DateTime) <= week_after_departure
+#     ).order_by(cast(Flight.time_departure, DateTime).asc()).limit(20).all()
 
 
 import requests
@@ -270,23 +286,35 @@ import requests
 # Función para obtener las coordenadas del aeropuerto utilizando geocode.maps.co
 def get_airport_coordinates(airport_id: str):
     try:
+        print("Obteniendo coordenadas del aeropuerto")
         # propia clave de API
         api_key = '6644d887417d1499696616bsid5ffd4'
         
+        print('url')
         # URL de la API de geocodificación
-        url = f'https://geocode.maps.co/v1/geocode?q={airport_id}&apikey={api_key}'
+        url = f'https://geocode.maps.co/search?q={airport_id}&apikey={api_key}'
 
+        print('solicitud get')
         # Realizar la solicitud GET a la API
         response = requests.get(url)
+        print(response)
         data = response.json()
+        print(data)
 
-        if data['status'] == 'OK':
+        # Buscar el objeto de tipo "aerodrome" y extraer su latitud y longitud
+
+        #if data['status'] == 'OK':
+        aerodrome_location = next((item for item in data if item['type'] == 'aerodrome'), None)
+
+        if aerodrome_location:
+            lat = aerodrome_location['lat']
+            lon = aerodrome_location['lon']
             # Extraer las coordenadas del resultado de la geocodificación
-            location = data['results'][0]['geometry']['location']
-            coordinates = (location['lat'], location['lng'])
+            #location = data['results'][0]['geometry']['location']
+            #coordinates = (location['lat'], location['lng'])
+            coordinates = (lat, lon)
+            print(f"Coordenadas del aeropuerto: {coordinates}")
             return coordinates
-        else:
-            return None
     except Exception as e:
         print(f"Error al obtener las coordenadas del aeropuerto: {str(e)}")
         return None
