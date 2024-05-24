@@ -32,6 +32,7 @@ def flight_prediction(data):
 # vuelo.
 
     results = []
+    id_results = []
     user_lat = float(user_coordinates["latitude"])
     user_lon = float(user_coordinates["longitude"])
 
@@ -39,11 +40,14 @@ def flight_prediction(data):
         print(flight)
         flight_lat = float(flight["coordinates"][0])
         flight_lon = float(flight["coordinates"][1])
+        print("calculando distancia")
         distance = haversine(user_lat, user_lon, flight_lat, flight_lon)
+        print(distance)
         price = flight['price']
         
         # Calcular ponderación
         score = distance/price
+        print(score)
 
         results.append({
             'flight_id': flight['flight_id'],
@@ -51,10 +55,21 @@ def flight_prediction(data):
             'price': price,
             'score': score
         })
+    print(results)
 
     # Sort flights by score
     results.sort(key=lambda x: x['score'])
+
+    print("sorted results")
+    print(results)
     
     # Return the top 3 flights
-    top_flights = results[:-3]
-    return top_flights  
+    top_flights = results[-3:]
+    print("top flights list")
+    print(top_flights)
+    print(type(top_flights))
+    for flight in top_flights:
+        id_results.append(flight['flight_id'])
+    print(id_results)
+    
+    return id_results  

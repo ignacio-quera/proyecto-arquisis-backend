@@ -6,6 +6,7 @@ from app.db import crud
 from app.db.database import SessionLocal
 import httpx
 import traceback
+import logging
 
 router = APIRouter()
 result = {}
@@ -24,23 +25,17 @@ async def make_prediction(request: Request, db: Session = Depends(get_db)):
         data = await request.json()
         print(data)
         user_id = data["user_id"]
-        print(user_id)
-        print(type(user_id))
         print("entramos al try")
         # if not user_id:
         #    raise ValueError("User ID is required in the headers")
 
         # # Example logic to fetch last purchase and extract airport name
         last_purchase = crud.get_last_approved_ticket(db, user_id) 
-        print(last_purchase) 
         # if not last_purchase:
         #     raise HTTPException(status_code=404, detail="No purchase found")
 
         airport_name = last_purchase.arrival_airport_id
-        print(airport_name)
         departure_date = last_purchase.time_departure
-        print(departure_date)
-        print(type(departure_date))
         
         upcoming_flights = crud.get_upcoming_flights(db, airport_name, departure_date)  
         print(upcoming_flights)
@@ -50,12 +45,6 @@ async def make_prediction(request: Request, db: Session = Depends(get_db)):
         print(user_location.longitud)
         print(user_location.latitude)
         
-        # flight_details = []
-        # for flight in upcoming_flights:
-        #     flight_coords = crud.get_airport_coordinates(flight.arrival_airport_id)
-        #     flight_details.append({'flight': flight, 'coordinates': flight_coords})
-        # data = {"flight_details": flight_details, "user_location": user_location}
-        # print(data)
         flight_details = []
         for flight in upcoming_flights:
             flight_coords = crud.get_airport_coordinates(flight.arrival_airport_id)
@@ -84,13 +73,14 @@ async def make_prediction(request: Request, db: Session = Depends(get_db)):
 
         print("WE GOT AN ANSWER")
         print(response)
-        # # Return a response with the Celery task ID
+        # Return a response with the Celery task ID
         if response.status_code == 200:
             data = response.json()
             print(data)
             job_id = data["job_id"]
+            print(job_id)
             #(db: Session, user_id: str, job_id:str,  recommended_flights: list
-            crud.create_prediction(db, user_id, job_id, data)
+            crud.create_prediction(db, user_id, job_id)
             return {"message": "Operación exitosa"}
         else:
             raise HTTPException(status_code=response.status_code, detail="Error al realizar la solicitud externa")
@@ -107,37 +97,41 @@ async def make_prediction(request: Request, db: Session = Depends(get_db)):
         # Lanzar una excepción HTTP con el mensaje detallado
         raise HTTPException(status_code=500, detail=detailed_error_message) 
     
-@router.get("/prediction/")
-async def get_prediction(request: Request, db: Session = Depends(get_db)):
-    user_id = request.headers.get("user")
-    try:
-        if not user_id:
-            raise ValueError("User ID is required in the headers")
+# @router.get("/prediction/")
+# async def get_prediction(request: Request, db: Session = Depends(get_db)):
+#     user_id = request.headers.get("user")
+#     try:
+#         if not user_id:
+#             raise ValueError("User ID is required in the headers")
+#         print("hola")
+#         prediction = crud.get_prediction_by_user(db, user_id)
+#         print(prediction)
+#         if not prediction:
+#             raise HTTPException(status_code=404, detail="No prediction found")
 
-        prediction = crud.get_prediction_by_user(db, user_id)
-        if not prediction:
-            raise HTTPException(status_code=404, detail="No prediction found")
+#         return prediction
 
-        return prediction
-
-    except ValueError as ve:
-        raise HTTPException(status_code=400, detail=str(ve))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+#     except ValueError as ve:
+#         raise HTTPException(status_code=400, detail=str(ve))
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/user/{user_id}/predictions/")
 async def list_user_predictions(user_id: str, db: Session = Depends(get_db)):
-    predictions = crud.get_prediction_by_user(db, user_id)
+    predictions = crud.get_prediction_by_user(user_id, db)
+    print(predictions)
     
     for prediction in predictions:
-        if prediction["status"] == "Pending":
-            job_id = prediction["job_id"]
+        print(prediction)
+        if prediction.status == "Pending":
+            job_id = prediction.job_id
             try:
                 async with httpx.AsyncClient() as client:
                     response = await client.get(f"http://producer:8000/job/{job_id}")
                 
                 data = response.json()
                 if data is not None:
+                    print(data)
                     recommended_flights = data["result"]
                     crud.update_prediction(job_id, recommended_flights, db)
             
@@ -145,4 +139,4 @@ async def list_user_predictions(user_id: str, db: Session = Depends(get_db)):
                 logging.error(f"Error: {e}")
                 raise HTTPException(status_code=500, detail="Se produjo un error interno en el servidor")
     
-    return crud.get_user_predictions(user_id, db)
+    return crud.get_prediction_by_user(user_id, db)

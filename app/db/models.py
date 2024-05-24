@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from .database import Base
 import uuid
 from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.dialects.postgresql import JSONB
 
 
 class Airport(Base):

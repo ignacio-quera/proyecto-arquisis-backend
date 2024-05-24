@@ -5,6 +5,8 @@ from .models import Airport, Flight, Ticket, Users, Prediction, UserLocation
 from datetime import datetime, date, timedelta
 from sqlalchemy import cast, DateTime
 from datetime import datetime, timedelta
+from typing import List, Dict
+import json
 
 
 #Función que recibe la información del evento y crea los vuelos y los aeropuertos
@@ -222,12 +224,12 @@ def update_user_location(db: Session, user_id: int, longitud: str, latitude: str
 def get_user_location(db: Session, user_id: str):
     return db.query(UserLocation).filter(UserLocation.id_user == user_id).first()
 
-def create_prediction(db: Session, user_id: str, job_id:str,  recommended_flights: list):
+def create_prediction(db: Session, user_id: str, job_id:str):
     created_prediction = Prediction(
         id_user=user_id,
         job_id=job_id,
         datetime=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        recommended_flights=recommended_flights,
+        recommended_flights=[],
         status="Pending"
     )
     db.add(created_prediction)
@@ -236,12 +238,18 @@ def create_prediction(db: Session, user_id: str, job_id:str,  recommended_flight
 
 
 
-def update_prediction(job_id: str, recommended_flights:list, db: Session):
+def update_prediction(job_id: str, recommended_flights: list, db: Session):
     prediction = db.query(Prediction).filter(Prediction.job_id == job_id).first()
+    if not prediction:
+        raise ValueError("Prediction not found")
+
+    # Asignar la lista de diccionarios directamente al campo JSONB
     prediction.recommended_flights = recommended_flights
     prediction.status = "Completed"
     db.commit()
     db.refresh(prediction)
+
+
 
 
 def get_prediction(job_id: str, db: Session):
@@ -252,7 +260,32 @@ def get_prediction(job_id: str, db: Session):
     return {'future_prices': query[1], 'future_dates': query[2], 'symbol': query[3], 'initial_date': query[4]}
 
 def get_prediction_by_user(user_id: str, db: Session):
+    print(user_id)
     return db.query(Prediction).filter(Prediction.id_user == user_id).all()
+
+def get_user_predictions(user_id: str, db: Session):
+    query = (
+        db.query(Prediction.id_user,
+                 Prediction.job_id,
+                 Prediction.symbol,
+                 Prediction.initial_date,
+                 Prediction.final_date,
+                 Prediction.quantity,
+                 Prediction.future_prices,
+                 Prediction.future_dates,
+                 Prediction.status)
+        .filter(Prediction.id_user == user_id)
+        .all())
+    return [{'user_id': prediction[0],
+             'job_id': prediction[1],
+             'symbol': prediction[2],
+             'initial_date': prediction[3],
+             'final_date': prediction[4],
+             'quantity': prediction[5],
+             'future_prices': prediction[6],
+             'future_dates': prediction[7],
+             'status': prediction[8]} for prediction in query]
+
 
 #Obtener el último ticker comprado por el usuario
 def get_last_approved_ticket(db: Session, user_id: int):

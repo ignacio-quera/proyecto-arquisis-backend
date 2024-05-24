@@ -7,7 +7,7 @@ from celery.result import AsyncResult
 app = FastAPI()
 
 class Job(BaseModel):
-    flightPrices: list
+    recommended_flights: list
     recent_purchases: int
     amount: int
 
@@ -18,6 +18,7 @@ def root():
 @app.get('/job/{job_id}')
 def get_job(job_id: str):
     task = flight_prediction.AsyncResult(job_id)
+    print(f"Task state {task.state}")
     return {"ready": task.ready(), "result": task.result}
 
 @app.post('/job')
@@ -25,7 +26,6 @@ async def create_job(request: Request):
     data = await request.json()
     try:
         job = flight_prediction.delay(data)
-        print(data)
         print(f"Se agregó el job {job.id} a la cola de predicción")
         response = {"job_id": job.id}
         return response
