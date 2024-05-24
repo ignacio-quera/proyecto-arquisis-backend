@@ -10,7 +10,7 @@ services:
     networks:
       - mqtt-network
       - app-network
-    container_name: fastapi_app
+    container_name: fastapi_app_e2
     volumes:
       - ./app:/app/app
     depends_on:
@@ -26,7 +26,7 @@ services:
     networks:
       - mqtt-network
       - app-network
-    container_name: fastapi_app_2
+    container_name: fastapi_app_2_e2
     volumes:
       - ./app:/app/app
     depends_on:
@@ -42,7 +42,7 @@ services:
     networks:
       - mqtt-network
       - app-network
-    container_name: fastapi_app_3
+    container_name: fastapi_app_3_e2
     volumes:
       - ./app:/app/app
     depends_on:
@@ -50,17 +50,17 @@ services:
     
   db:
     image: postgres:latest
-    container_name: db
+    container_name: db_2
     networks:
       - app-network
     expose:
       - "5432"
     restart: always
-    hostname: db
+    hostname: db_2
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: db_development_flights_e0
+      POSTGRES_DB: ${DB_NAME}
     volumes:
       - db-volume:/var/lib/postgresql/data
       # To persist the data in the database we have a volume that persist after container deletion
@@ -92,6 +92,79 @@ services:
     restart: always
     volumes:
       - ./publisher:/publisher/publisher
+
+  redis-broker:
+    # https://redis.com/solutions/use-cases/messaging/
+    image: redis:7
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+    volumes:
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+
+
+  producer:
+    build:
+        context: ./workers
+        dockerfile: Dockerfile
+    command: uvicorn producer:app --reload --host 0.0.0.0 --port 8000
+    volumes:
+      - ./workers:/opt/
+    expose:
+      - 8000
+    ports:
+      - '8003:8000'
+    networks:
+      - app-network
+    environment:
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
+    depends_on:
+      - redis-broker
+
+  consumer:
+    build:
+      context: ./workers
+      dockerfile: Dockerfile
+    deploy:
+      # replicas scales containers
+      replicas: 2
+    # concurrency specifies number of worker
+    # purge deletes the broker queue every time it starts up
+    command: celery -A consumer.celery_app worker --loglevel=INFO --purge --concurrency=1
+    volumes:
+      - ./workers:/opt/
+    networks:
+      - app-network
+    depends_on:
+      - producer
+    environment:
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
+
+
+networks:
+  app-network:
+    driver: bridge
+  mqtt-network:
+    driver: bridge
+
+volumes: # All the named volumes needed to persist data after container deletion
+  db-volume:
+
+  # celery_beat:
+  #   build:
+  #     context: ./project
+  #     dockerfile: Dockerfile
+  #   command: celery -A consumer.celery_app beat --loglevel=INFO
+  #   volumes:
+  #     - ./project:/opt/
+  #   depends_on:
+  #     - producer
+  #   environment:
+  #     CELERY_BROKER_URL: ${CELERY_BROKER_URL}
+  #     CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
 
   # jobmaster:
   #   container_name: jobmaster
@@ -131,12 +204,3 @@ services:
   #     CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
   #   networks:
   #     - app-network
-
-networks:
-  app-network:
-    driver: bridge
-  mqtt-network:
-    driver: bridge
-
-volumes: # All the named volumes needed to persist data after container deletion
-  db-volume:

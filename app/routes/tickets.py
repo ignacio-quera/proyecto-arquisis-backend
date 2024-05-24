@@ -1,13 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Body, BackgroundTasks, Request
 from sqlalchemy.orm import Session
+# from botocore.exceptions import ClientError
 from transbank.webpay.webpay_plus.transaction import Transaction, WebpayOptions, IntegrationCommerceCodes, IntegrationApiKeys
 from transbank.common.integration_type import IntegrationType
 from transbank.error.transbank_error import TransbankError
 import requests
 import random
 import uuid
+import json
 from app.db import crud
 from app.db.database import SessionLocal
+import httpx
 
 
 def get_airport_coordinates(airport_code):
@@ -134,35 +137,49 @@ def delete_ticket(
 async def webpay_confirmation(transbank_response: dict):
     print(transbank_response)
     payment_status = {"status": "success"}
-    print("confirmacion de webpay")
+    print("confirmacion de webpay webpay_confirmation")
     return payment_status
+    
+# @router.post('/webpayconfirm')
+# async def webpay_confirm(event_data: dict = Body(...), db: Session = Depends(get_db)):
+#     try:
+#         print("confirmacion de webpay en tickets")
+#         transaction = Transaction(WebpayOptions(IntegrationCommerceCodes.WEBPAY_PLUS, IntegrationApiKeys.WEBPAY, IntegrationType.TEST))
+#         token_ws = event_data["token_ws"]
 
+#         if not token_ws:
+#             return {'message': 'Transaction cancelled by user'}
+#         response = transaction.commit(token_ws) 
+#         if response["status"] == 'AUTHORIZED':
+#             # enviar mail al usuario
+#             to_email = 'flightmailer@gmail.com'
+#             subject = 'Confirmación de transacción exitosa'
+#             body = 'Su transacción ha sido confirmada con éxito.'
+            
+#             print("VAMOS A MANDAR UN MAIL")
+#             send_email(to_email, subject, body)
 
-@router.post('/webpayconfirm')
-def webpay_confirm(event_data: dict = Body(...), db: Session = Depends(get_db)):
-    try:
-        print("confirmacion de webpay")
-        transaction = Transaction(WebpayOptions(IntegrationCommerceCodes.WEBPAY_PLUS, IntegrationApiKeys.WEBPAY, IntegrationType.TEST))
-        token_ws = event_data["token_ws"]
+#             # Llamada a la ruta make_prediction
+#             async with httpx.AsyncClient() as client:
+#                 make_prediction_response = await client.post("http://localhost:8000/make_prediction", json={"session_id": response["session_id"]})
+#                 make_prediction_result = make_prediction_response.json()
+#                 print(make_prediction_result)
 
-        if not token_ws:
-            return {'message': 'Transaction cancelled by user'}
-        response = transaction.commit(token_ws) 
-        if response["status"] == 'AUTHORIZED':
-            message = {
-                'request_id': response["session_id"],
-                'valid': True,
-            }
-            crud.update_ticket(db, response["session_id"], "valid")
-            requests.post(f'{PUBLISHER_URL}/validations', json=message)
-            return {'message': 'Transaction confirmed'}
-        else:
-            crud.update_ticket(db, response["session_id"], "invalid")
-            message = {
-                'request_id': response["session_id"],
-                'valid': False,
-            }
-            requests.post(f'{PUBLISHER_URL}/validations', json=message)
-            return {'message': 'Transaction cancelled'}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+#             message = {
+#                 'request_id': response["session_id"],
+#                 'valid': True,
+#             }
+#             crud.update_ticket(db, response["session_id"], "valid")
+#             requests.post(f'{PUBLISHER_URL}/validations', json=message)
+#             return {'message': 'Transaction confirmed', 'make_prediction_result': make_prediction_result}
+#         else:
+#             crud.update_ticket(db, response["session_id"], "invalid")
+#             message = {
+#                 'request_id': response["session_id"],
+#                 'valid': False,
+#             }
+#             requests.post(f'{PUBLISHER_URL}/validations', json=message)
+#             return {'message': 'Transaction cancelled'}
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
+
