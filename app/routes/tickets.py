@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Body, BackgroundTasks, Request
 from sqlalchemy.orm import Session
-from botocore.exceptions import ClientError
+# from botocore.exceptions import ClientError
 from transbank.webpay.webpay_plus.transaction import Transaction, WebpayOptions, IntegrationCommerceCodes, IntegrationApiKeys
 from transbank.common.integration_type import IntegrationType
 from transbank.error.transbank_error import TransbankError

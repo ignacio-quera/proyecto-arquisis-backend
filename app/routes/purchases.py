@@ -4,8 +4,10 @@ from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
 from transbank.webpay.webpay_plus.transaction import Transaction, WebpayOptions, IntegrationCommerceCodes, IntegrationApiKeys
 from pydantic import EmailStr, BaseModel
 from transbank.common.integration_type import IntegrationType
-from app.db import crud
 import requests
+import boto3
+import json
+from app.db import crud
 from app.db.database import SessionLocal
 from typing import List
 
@@ -84,3 +86,31 @@ async def webpay_confirm(event_data: dict = Body(...), db: Session = Depends(get
             return {'message': 'Transaction cancelled'}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+lambda_client = boto3.client('lambda', region_name='us-east-2')
+
+@router.post("/generate-receipt/")
+async def generate_receipt(event_data: dict = Body(...), db: Session = Depends(get_db)):
+    transaction_id = event_data["transaction_id"]
+    amount = event_data["amount"]
+    date = event_data["date"]
+    email = event_data["email"]
+    payload = {
+        "transactionId": transaction_id,
+        "amount": amount,
+        "date": date,
+        "email": email
+    }
+    try:
+        response = lambda_client.invoke(
+            FunctionName='ReceiptCreator',
+            InvocationType='RequestResponse',
+            Payload=json.dumps(payload)
+        )
+        response_payload = json.loads(response['Payload'].read())
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    if response_payload['statusCode'] == 200:
+        return response_payload['body']
+    else:
+        raise HTTPException(status_code=500, detail=response_payload['body'])
