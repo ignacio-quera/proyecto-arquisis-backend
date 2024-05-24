@@ -220,7 +220,7 @@ def update_user_location(db: Session, user_id: int, longitud: str, latitude: str
     db.commit() 
 
 def get_user_location(db: Session, user_id: str):
-    return db.query(UserLocation).filter(UserLocation.id_user == user_id).all()
+    return db.query(UserLocation).filter(UserLocation.id_user == user_id).first()
 
 def create_prediction(db: Session, user_id: str, job_id:str,  recommended_flights: list):
     created_prediction = Prediction(
@@ -291,6 +291,7 @@ import requests
 # Función para obtener las coordenadas del aeropuerto utilizando geocode.maps.co
 def get_airport_coordinates(airport_id: str):
     try:
+        print(airport_id)
         print("Obteniendo coordenadas del aeropuerto")
         # propia clave de API
         api_key = '6644d887417d1499696616bsid5ffd4'
@@ -313,7 +314,7 @@ def get_airport_coordinates(airport_id: str):
             # Extraer las coordenadas del resultado de la geocodificación
             #location = data['results'][0]['geometry']['location']
             #coordinates = (location['lat'], location['lng'])
-            coordinates = (lat, lon)
+            coordinates = [lat, lon]
             print(f"Coordenadas del aeropuerto: {coordinates}")
             return coordinates
     except Exception as e:
