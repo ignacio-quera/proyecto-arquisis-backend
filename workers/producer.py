@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, HTTPException
 from pydantic import BaseModel
 from celery_config.tasks import flight_prediction # Importar la tarea de Celery
 
@@ -18,15 +18,27 @@ def root():
 @app.get('/job/{job_id}')
 def get_job(job_id: str):
     task = flight_prediction.AsyncResult(job_id)
-    return {"ready": task.ready(), "result": task.result,}
+    return {"ready": task.ready(), "result": task.result}
 
-@app.post('/job/')
-def create_job(job: Job):
-    task = flight_prediction.delay(job.flightPrices, job.recent_purchases, job.amount)
-    return {'message': 'job published', 'job_id': task.id}
+@app.post('/job')
+async def create_job(request: Request):
+    data = await request.json()
+    try:
+        job = flight_prediction.delay(data)
+        print(data)
+        print(f"Se agregó el job {job.id} a la cola de predicción")
+        response = {"job_id": job.id}
+        return response
+    except Exception as e:
+        print(f"Se produjo un error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Error en el servidor")
 
 @app.get('/heartbeat')
 def heartbeat():
+    return {'working': 'True'}
+
+@app.get('/job')
+def get_job():
     return {'working': 'True'}
 
 # @app.post("/job")

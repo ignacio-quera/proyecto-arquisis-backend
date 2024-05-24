@@ -19,9 +19,9 @@ def haversine(lat1, lon1, lat2, lon2):
 
 @shared_task
 def flight_prediction(data):
-
-    flight_details = data["flight_details"],
-    user_coordinates = data["user_coordinates"]
+    flight_details = data["flight_details"]
+    print(flight_details)
+    user_coordinates = data["user_location"]
 
 #     Se calculan la distancia de todos los vuelos encontrados en el punto anterior
 # ( flight_coord ) con respecto a la ubicación de la dirección ip del usuario ( ip_coord ), y se
@@ -32,11 +32,13 @@ def flight_prediction(data):
 # vuelo.
 
     results = []
-    user_lat = user_coordinates['latitude']
-    user_lon = user_coordinates['longitud']
+    user_lat = float(user_coordinates["latitude"])
+    user_lon = float(user_coordinates["longitude"])
 
     for flight in flight_details:
-        flight_lat, flight_lon = flight['coordinates']
+        print(flight)
+        flight_lat = float(flight["coordinates"][0])
+        flight_lon = float(flight["coordinates"][1])
         distance = haversine(user_lat, user_lon, flight_lat, flight_lon)
         price = flight['price']
         
