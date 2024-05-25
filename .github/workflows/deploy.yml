@@ -45,7 +45,7 @@ jobs:
         uses: aws-actions/aws-cli-action@v2
         with:
           aws-access-key-id: AKIA4MTWKZZHLK2Q34XQ
-          aws-secret-access-key: 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
+          
           aws-region: us-east-2 # Reemplaza con tu región AWS
           command: |
             aws deploy create-deployment \
