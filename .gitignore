@@ -1,1 +1,4 @@
 *.pyc
+
+# SAM CLI Ignore .aws-sam directory
+receipt_lambda/.aws-sam/*

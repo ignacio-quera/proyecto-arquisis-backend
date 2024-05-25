@@ -28,6 +28,19 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
+      - name: Install AWS CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pip
+          pip3 install awscli --upgrade --user
+    
+     - name: Build and Deploy Lambda
+        run: |
+          cd receipt_lambda
+          sam build
+          sam deploy
+          y
+
       - name: Deploy to AWS
         uses: aws-actions/aws-cli-action@v2
         with:
