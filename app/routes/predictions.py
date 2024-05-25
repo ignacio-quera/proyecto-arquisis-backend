@@ -22,43 +22,18 @@ async def make_prediction(request: Request, db: Session = Depends(get_db)):
     print("adentro de make_prediction")
     try:
         data = await request.json()
-        print(data)
         user_id = data["user_id"]
-        print(user_id)
-        print(type(user_id))
-        print("entramos al try")
-        # if not user_id:
-        #    raise ValueError("User ID is required in the headers")
-
         # # Example logic to fetch last purchase and extract airport name
         last_purchase = crud.get_last_approved_ticket(db, user_id) 
-        print(last_purchase) 
-        # if not last_purchase:
-        #     raise HTTPException(status_code=404, detail="No purchase found")
 
         airport_name = last_purchase.arrival_airport_id
-        print(airport_name)
         departure_date = last_purchase.time_departure
-        print(departure_date)
-        print(type(departure_date))
-        
         upcoming_flights = crud.get_upcoming_flights(db, airport_name, departure_date)  
-        print(upcoming_flights)
         
-        print("user location")
         user_location = crud.get_user_location(db, user_id)
-        print(user_location.longitud)
-        print(user_location.latitude)
-        
-        # flight_details = []
-        # for flight in upcoming_flights:
-        #     flight_coords = crud.get_airport_coordinates(flight.arrival_airport_id)
-        #     flight_details.append({'flight': flight, 'coordinates': flight_coords})
-        # data = {"flight_details": flight_details, "user_location": user_location}
-        # print(data)
         flight_details = []
         for flight in upcoming_flights:
-            flight_coords = crud.get_airport_coordinates(flight.arrival_airport_id)
+            flight_coords = crud.get_airport_coordinates(db, flight.arrival_airport_id)
             flight_details.append({
                 'flight_id': flight.id,
                 'departure_airport_id': flight.departure_airport_id,
@@ -79,7 +54,6 @@ async def make_prediction(request: Request, db: Session = Depends(get_db)):
 
         # #result = flight_prediction.delay(flight_details, user_location)
         async with httpx.AsyncClient(timeout=30.0) as client:
-            print("llamamos a post")
             response = await client.post("http://producer:8000/job", json=data)
 
         print("WE GOT AN ANSWER")
@@ -125,9 +99,10 @@ async def get_prediction(request: Request, db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/user/{user_id}/predictions/")
-async def list_user_predictions(user_id: str, db: Session = Depends(get_db)):
-    predictions = crud.get_prediction_by_user(db, user_id)
+@router.get("/user/")
+async def list_user_predictions(request: Request, db: Session = Depends(get_db)):
+    user_id = request.headers.get("user")
+    predictions = crud.get_prediction_by_user(user_id, db)
     
     for prediction in predictions:
         if prediction["status"] == "Pending":
@@ -145,4 +120,4 @@ async def list_user_predictions(user_id: str, db: Session = Depends(get_db)):
                 logging.error(f"Error: {e}")
                 raise HTTPException(status_code=500, detail="Se produjo un error interno en el servidor")
     
-    return crud.get_user_predictions(user_id, db)
+    return crud.get_prediction_by_user(user_id, db)

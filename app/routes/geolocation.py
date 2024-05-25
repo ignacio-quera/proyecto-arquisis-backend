@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Body
 from sqlalchemy.orm import Session
 import httpx
 from app.db.database import SessionLocal
@@ -28,47 +28,18 @@ async def get_ip():
         print(f"Error fetching IP address: {e}")
         return {"error": "Failed to fetch IP address"}
     
-@router.get("/get-address")
-async def get_address(request: Request, db: Session = Depends(get_db)):
-    user_id = request.headers.get("user")
-    print(user_id)
+@router.post("/user_address")
+async def get_address(event_data: dict = Body(...), db: Session = Depends(get_db)):
+    user_id = event_data["user_id"]
+    latitude = event_data["latitude"]
+    longitude = event_data["longitude"]
     try:
-        ip = ""
-        try:
-            async with httpx.AsyncClient(follow_redirects=True) as client:
-                response = await client.get("https://ipinfo.io/json")
-                data = response.json()
-                ip = data["ip"]
-        except Exception as e:
-            print(f"Error fetching IP address: {e}")
-            return {"error": "Failed to fetch IP address"}
-        async with httpx.AsyncClient() as client:
-            response = await client.get(f"https://ipinfo.io/{ip}/json")
-            # Check if the response is successful
-            if response.status_code == 200:
-                data = response.json()
-                print(data)
-                latitude, longitude = data["loc"].split(',')
-                print(latitude, longitude)
-                event_data = {
-                    "user_id": user_id,
-                    "longitud": longitude,
-                    "latitud": latitude}
-                
-                print("creando un usuario/ubicacion")
-                crud.create_user_location(db, event_data)
-                return {
-                    "ip": ip,
-                    "city": data["city"],
-                    "region": data["region"],
-                    "country": data["country"],
-                    "loc": data["loc"],
-                    "postal": data["postal"],
-                    "timezone": data["timezone"],
-                }
-            else:
-                raise HTTPException(status_code=response.status_code, detail=response.text)
-                
+        event_data = {
+            "user_id": user_id,
+            "longitud": longitude,
+            "latitud": latitude}
+        crud.create_user_location(db, event_data)
+        return {"success": "User location created"}
     except Exception as e:
-        print(f"Error fetching address: {e}")
-        raise HTTPException(status_code=500, detail="Failed to fetch address")
+        print(f"Error creating user location: {e}")
+        return {"error": "Failed to create user location"}

@@ -75,8 +75,6 @@ async def read_tickets(
 
 @router.post("/create/")
 async def create_ticket(event_data: dict = Body(...), db: Session = Depends(get_db)):
-    print("creando un ticket")
-    print(event_data)
     try:
         request_id = uuid.uuid4()
         crud.create_ticket(db, event_data, request_id)

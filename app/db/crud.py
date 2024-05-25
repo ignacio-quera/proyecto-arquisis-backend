@@ -22,14 +22,12 @@ def create_event_with_flight(db: Session, event_data: dict):
         departure_airport = db.query(Airport).filter_by(id=departure_airport_id).first()
         if not departure_airport:
             departure_airport = Airport(id=departure_airport_id, name=departure_airport_name)
-            print("Departure airport creado correctamente")
             db.add(departure_airport)
 
         # Crear el objeto Airport para el aeropuerto de llegada si no existe
         arrival_airport = db.query(Airport).filter_by(id=arrival_airport_id).first()
         if not arrival_airport:
             arrival_airport = Airport(id=arrival_airport_id, name=arrival_airport_name)
-            print("Arrival airport creado correctamente")
             db.add(arrival_airport)
 
         #Creamos el objeto Flight con la información del vuelo y sus atributos
@@ -110,6 +108,48 @@ def get_flights_by_id(db: Session, flight_id: int, skip: int = 0, limit: int = 2
         .all()
     )
 
+def create_airport(db: Session, event_data: dict):
+    departure_airport_data = event_data["departure_airport"]
+    departure_airport_id = departure_airport_data["id"]
+    departure_airport_name = departure_airport_data["name"]
+    arrival_airport_data = event_data["arrival_airport"]
+    arrival_airport_id = arrival_airport_data["id"]
+    arrival_airport_name = arrival_airport_data["name"]
+    try:
+        # Check if the airport already exists
+        departure_airport = db.query(Airport).filter_by(id=departure_airport_id).first()
+        if departure_airport:
+            print("Departure airport already exists")
+        else:
+            departure_airport = Airport(
+                id=departure_airport_id,
+                name=departure_airport_name
+            )
+            db.add(departure_airport)
+            db.commit()
+            db.refresh(departure_airport)
+
+        arrival_airport = db.query(Airport).filter_by(id=arrival_airport_id).first()
+        if arrival_airport:
+            print("Arrival airport already exists")
+        else:
+            arrival_airport = Airport(
+                id=arrival_airport_id,
+                name=arrival_airport_name
+            )
+            db.add(arrival_airport)
+            db.commit()
+            db.refresh(arrival_airport)
+
+        return
+    except Exception as e:
+        print("Error: ", e)
+        db.rollback()
+        raise
+
+def get_airport_by_id(db: Session, airport_id: str):
+    return db.query(Airport).filter(Airport.id == airport_id).first()
+
 def create_ticket(db: Session, event_data: dict, ticket_id: uuid.UUID):
     try:
         #Obtenermos la información que viene en el JSON del evento
@@ -173,37 +213,13 @@ def delete_ticket(db: Session, ticket_id: uuid.UUID):
     db.query(Ticket).filter(Ticket.id == ticket_id).delete()
     db.commit()
 
-# # Creamos usuarios
-# def create_user(db: Session, user: Users):
-#     db.add(user)
-#     db.commit()
-#     db.refresh(user)
-#     return user
-
-# # Obtener usuarios
-# def get_user_by_id(db: Session, user_id: int):
-#     return db.query(Users).filter(Users.id == user_id).first()
-
-# # Obtener usuario por email
-# def get_user_by_email(db: Session, email: str):
-#     return db.query(Users).filter(Users.email == email).first()
-
-# # Obtener todos los usuarios
-# def get_users(db: Session, skip: int = 0, limit: int = 25):
-#     return db.query(Users).offset(skip).limit(limit).all()
-
 def create_user_location(db: Session, event_data: dict):
     try:
-        print(event_data)
-        print(event_data["user_id"])
-        print(event_data["longitud"])
-        print(event_data["latitud"])
         userLocation = UserLocation(
             id_user= event_data["user_id"],
             longitud= event_data["longitud"],
             latitude= event_data["latitud"]
         )
-        print(userLocation)
         db.add(userLocation)
         db.commit()
         db.refresh(userLocation)
@@ -254,6 +270,14 @@ def get_prediction(job_id: str, db: Session):
 def get_prediction_by_user(user_id: str, db: Session):
     return db.query(Prediction).filter(Prediction.id_user == user_id).all()
 
+def get_tickets_by_user_id(db: Session, user_id: int, skip: int = 0, limit: int = 25):
+    return (
+        db.query(Ticket)
+        .order_by(Ticket.time_departure.desc())
+        .filter(Ticket.id_user == user_id)
+        .all()
+    )
+
 #Obtener el último ticker comprado por el usuario
 def get_last_approved_ticket(db: Session, user_id: int):
     return db.query(Ticket).filter(
@@ -271,33 +295,19 @@ def get_upcoming_flights(db: Session, airport_id: str, departure_date: str):
         #Flight.time_departure <= week_after_purchase
     ).order_by(Flight.time_departure.asc()).limit(20).all()
 
-# def get_upcoming_flights(db: Session, airport_id: str, departure_date: str):
-#     # Convierte la cadena de fecha y hora en un objeto datetime
-#     departure_datetime = datetime.strptime(departure_date, "%Y-%m-%d %H:%M")
-    
-#     # Calcula la fecha una semana después de la fecha de salida
-#     week_after_departure = departure_datetime + timedelta(days=7)
-    
-#     # Consulta la base de datos usando los objetos datetime y convierte las cadenas a datetime
-#     return db.query(Flight).filter(
-#         Flight.departure_airport_id == airport_id,
-#         cast(Flight.time_departure, DateTime) > departure_datetime,
-#         cast(Flight.time_departure, DateTime) <= week_after_departure
-#     ).order_by(cast(Flight.time_departure, DateTime).asc()).limit(20).all()
-
-
 import requests
 
 # Función para obtener las coordenadas del aeropuerto utilizando geocode.maps.co
-def get_airport_coordinates(airport_id: str):
+def get_airport_coordinates(db: Session, airport_id: str):
     try:
         print(airport_id)
+        airport = get_airport_by_id(db, airport_id)
         print("Obteniendo coordenadas del aeropuerto")
         # propia clave de API
         api_key = '6644d887417d1499696616bsid5ffd4'
         
         # URL de la API de geocodificación
-        url = f'https://geocode.maps.co/search?q={airport_id}&apikey={api_key}'
+        url = f'https://geocode.maps.co/search?q={airport.name}&apikey={api_key}'
 
         # Realizar la solicitud GET a la API
         response = requests.get(url)

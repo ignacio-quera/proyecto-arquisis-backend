@@ -18,6 +18,7 @@ def create_flights(event_data: dict = Body(...), db: Session = Depends(get_db)):
     print("creando un vuelo")
     print(event_data)
     try:
+        crud.create_airport(db, event_data) 
         crud.create_event_with_flight(db, event_data)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

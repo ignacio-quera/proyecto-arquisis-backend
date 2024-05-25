@@ -15,6 +15,7 @@ from email.mime.text import MIMEText
 import httpx
 
 PUBLISHER_URL = "http://publisher_container:9001"
+BACKEND_URL = "http://fastapi_app_e2:8000"
 
 SMTP_SERVER = 'smtp.gmail.com'
 SMTP_PORT = 587  # Puerto para TLS
@@ -42,9 +43,7 @@ def get_db():
 #     await fm.send_message(email_message)
 
 def send_email(to_email, subject, body):
-    print("funcion send_mail")
     try:
-        print("try")
         msg = MIMEMultipart()
         msg['From'] = SMTP_USERNAME
         msg['To'] = to_email
@@ -65,16 +64,14 @@ def send_email(to_email, subject, body):
 @router.post('/webpayconfirm')
 async def webpay_confirm(event_data: dict = Body(...), db: Session = Depends(get_db)):
     try:
-        print("confirmacion de webpay")
-        print(event_data)
         transaction = Transaction(WebpayOptions(IntegrationCommerceCodes.WEBPAY_PLUS, IntegrationApiKeys.WEBPAY, IntegrationType.TEST))
         token_ws = event_data["token_ws"]
         mail = event_data["mail"]
         user_id = event_data["user_id"]
-        print(mail)
         if not token_ws:
+            session_id = event_data["session_id"]
+            crud.update_ticket(db, session_id, "invalid")
             return {'message': 'Transaction cancelled by user'}
-        
         response = transaction.commit(token_ws)
         if response["status"] == 'AUTHORIZED':
             #enviar correo
@@ -91,12 +88,15 @@ async def webpay_confirm(event_data: dict = Body(...), db: Session = Depends(get
             requests.post(f'{PUBLISHER_URL}/validations', json=message)
 
             #Hacer predicción
-            async with httpx.AsyncClient() as client:
-                print("HAGAMOS UNA PREDCICCION")
-                make_prediction_response = await client.post("http://localhost:8000/predictions/make_prediction", json={"user_id": user_id})
-                make_prediction_result = make_prediction_response.json()
-                print("PREDICCION REALIZADA")
-                print(make_prediction_result)
+            try:
+                async with httpx.AsyncClient() as client:
+                    print("HAGAMOS UNA PREDCICCION")
+                    make_prediction_response = await client.post(f"{BACKEND_URL}/predictions/make_prediction", json={"user_id": user_id})
+                    make_prediction_result = make_prediction_response.json()
+                    print("PREDICCION REALIZADA")
+                    print(make_prediction_result)
+            except Exception as e:
+                print("Error making prediction: ", e)
 
             return {'message': 'Transaction confirmed'}
         else:
