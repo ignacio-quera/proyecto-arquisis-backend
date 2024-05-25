@@ -25,7 +25,6 @@ async def get_ip():
             data = response.json()
             return {"ip": data["ip"]}
     except Exception as e:
-        print(f"Error fetching IP address: {e}")
         return {"error": "Failed to fetch IP address"}
     
 @router.post("/user_address")
@@ -41,5 +40,4 @@ async def get_address(event_data: dict = Body(...), db: Session = Depends(get_db
         crud.create_user_location(db, event_data)
         return {"success": "User location created"}
     except Exception as e:
-        print(f"Error creating user location: {e}")
         return {"error": "Failed to create user location"}

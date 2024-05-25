@@ -9,10 +9,10 @@ Resources:
       CodeUri: .
       Environment:
         Variables:
-          BUCKET_NAME: your-s3-bucket-name
+          BUCKET_NAME: ticket-receipt-bucket
       Policies:
         - S3WritePolicy:
-            BucketName: your-s3-bucket-name
+            BucketName: ticket-receipt-bucket
       Events:
         Api:
           Type: Api

@@ -35,7 +35,3 @@ Este comando iniciará un asistente interactivo que te guiará a través del pro
 ## Paso 5: Prueba de la Aplicación
 
 Una vez que el despliegue se complete con éxito, prueba tu aplicación accediendo a los recursos creados en AWS, como API Gateway, Lambda, etc.
-
-¡Listo! Has desplegado tu aplicación serverless utilizando Serverless Application Model (SAM).
-
-¡Espero que encuentres útil esta guía para desplegar tu aplicación! Si tienes alguna pregunta o encuentras algún problema, no dudes en contactarme.

@@ -3,6 +3,7 @@ import boto3
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from io import BytesIO
+import datetime
 
 s3 = boto3.client('s3')
 
@@ -10,14 +11,30 @@ def generate_pdf(ticket_data):
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=letter)
     
-    # Draw the text on the PDF
-    c.drawString(50, 750, f"Flight Ticket Receipt")
-    c.drawString(50, 730, f"Passenger Name: {ticket_data['passenger_name']}")
-    c.drawString(50, 710, f"Flight Number: {ticket_data['flight_number']}")
-    c.drawString(50, 690, f"Departure: {ticket_data['departure']}")
-    c.drawString(50, 670, f"Arrival: {ticket_data['arrival']}")
-    c.drawString(50, 650, f"Seat: {ticket_data['seat']}")
-    c.drawString(50, 630, f"Price: ${ticket_data['price']}")
+    # Define FlightApp logo
+
+    # Define current date
+    current_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    # Set font
+    c.setFont("Helvetica", 12)
+
+    # Draw current date
+    c.drawString(400, 780, f"Date: {current_date}")
+
+    # Draw ticket information
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(50, 650, "Flight Ticket")
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(50, 620, "Ticket Information:")
+    c.setFont("Helvetica", 12)
+    c.drawString(70, 590, f"Ticket ID: {ticket_data['ticket_id']}")
+    c.drawString(70, 570, f"Group Number: 23")
+    c.drawString(70, 550, f"Flight Number: {ticket_data['flight_number']}")
+    c.drawString(70, 530, f"Departure: {ticket_data['departure']}")
+    c.drawString(70, 510, f"Arrival: {ticket_data['arrival']}")
+    c.drawString(70, 490, f"Seat: {ticket_data['seat']}")
+    c.drawString(70, 470, f"Price: {ticket_data['price']}")
     
     c.showPage()
     c.save()
@@ -27,15 +44,15 @@ def generate_pdf(ticket_data):
 
 def lambda_handler(event, context):
     try:
-        print(event)
-        print(context)
-        ticket_data = json.loads(event['body'])
+        # Parse the event data, which is a dictionary
+        event = json.dumps(event)
+        ticket_data = json.loads(event)
         
         # Generate the PDF
         pdf_buffer = generate_pdf(ticket_data)
         
         # Define S3 bucket and object key
-        bucket_name = 'your-s3-bucket-name'
+        bucket_name = 'ticket-receipt-bucket'
         object_key = f"receipts/{ticket_data['ticket_id']}.pdf"
         
         # Upload PDF to S3  

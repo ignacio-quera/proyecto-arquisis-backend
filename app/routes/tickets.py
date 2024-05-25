@@ -103,19 +103,6 @@ def update_ticket(event_data: dict = Body(...), db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/")
-async def read_tickets(
-    request: Request,
-    db: Session = Depends(get_db)
-    ):
-    headers = dict(request.headers)
-    user_id = headers.get("user")
-    tickets = crud.get_tickets_by_user_id(db, user_id)
-
-    if not tickets:
-        return f"No hay ningún ticket"
-    return tickets
-
 @router.delete("/delete")
 def delete_ticket(
     request: Request,
@@ -130,54 +117,3 @@ def delete_ticket(
         return tickets
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
-@router.get("/webpay/")
-async def webpay_confirmation(transbank_response: dict):
-    print(transbank_response)
-    payment_status = {"status": "success"}
-    print("confirmacion de webpay webpay_confirmation")
-    return payment_status
-    
-# @router.post('/webpayconfirm')
-# async def webpay_confirm(event_data: dict = Body(...), db: Session = Depends(get_db)):
-#     try:
-#         print("confirmacion de webpay en tickets")
-#         transaction = Transaction(WebpayOptions(IntegrationCommerceCodes.WEBPAY_PLUS, IntegrationApiKeys.WEBPAY, IntegrationType.TEST))
-#         token_ws = event_data["token_ws"]
-
-#         if not token_ws:
-#             return {'message': 'Transaction cancelled by user'}
-#         response = transaction.commit(token_ws) 
-#         if response["status"] == 'AUTHORIZED':
-#             # enviar mail al usuario
-#             to_email = 'flightmailer@gmail.com'
-#             subject = 'Confirmación de transacción exitosa'
-#             body = 'Su transacción ha sido confirmada con éxito.'
-            
-#             print("VAMOS A MANDAR UN MAIL")
-#             send_email(to_email, subject, body)
-
-#             # Llamada a la ruta make_prediction
-#             async with httpx.AsyncClient() as client:
-#                 make_prediction_response = await client.post("http://localhost:8000/make_prediction", json={"session_id": response["session_id"]})
-#                 make_prediction_result = make_prediction_response.json()
-#                 print(make_prediction_result)
-
-#             message = {
-#                 'request_id': response["session_id"],
-#                 'valid': True,
-#             }
-#             crud.update_ticket(db, response["session_id"], "valid")
-#             requests.post(f'{PUBLISHER_URL}/validations', json=message)
-#             return {'message': 'Transaction confirmed', 'make_prediction_result': make_prediction_result}
-#         else:
-#             crud.update_ticket(db, response["session_id"], "invalid")
-#             message = {
-#                 'request_id': response["session_id"],
-#                 'valid': False,
-#             }
-#             requests.post(f'{PUBLISHER_URL}/validations', json=message)
-#             return {'message': 'Transaction cancelled'}
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
-
