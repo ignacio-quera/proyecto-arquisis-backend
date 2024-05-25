@@ -1,0 +1,11 @@
+version = 0.1
+[default.deploy.parameters]
+parameter_overrides = "RequirementsFile=requirements.txt"
+stack_name = "sam-receipt"
+resolve_s3 = true
+s3_prefix = "sam-receipt"
+region = "us-east-2"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+disable_rollback = true
+image_repositories = []
