@@ -9,11 +9,19 @@ from app.router import router
 
 app = FastAPI()
 
+origins = [
+    "http://localhost:3000",
+    "http://localhost",
+    "http://localhost:8000",
+    "http://localhost:8080",
+    "https://www.angegazituae0.me",
+]   
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Replace with your frontend URL and port
+    allow_origins=origins,  # Replace with your frontend URL and port
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
 )
 
