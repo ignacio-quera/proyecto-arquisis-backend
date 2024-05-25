@@ -2,3 +2,9 @@
 
 # SAM CLI Ignore .aws-sam directory
 receipt_lambda/.aws-sam/*
+
+# Ignore the virtual environment
+receipt_lambda/.venv/*
+
+# Ignore docs directory
+docs/*
