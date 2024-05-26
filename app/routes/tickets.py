@@ -87,8 +87,7 @@ def get_ticket_by_id(
 async def create_ticket(event_data: dict = Body(...), db: Session = Depends(get_db)):
     try:
         request_id = uuid.uuid4()
-        ticket = crud.create_ticket(db, event_data, request_id)
-        return ticket
+        crud.create_ticket(db, event_data, request_id)
         event_data["request_id"] = str(request_id)
         return_url = f"{FRONTEND_URL}/compracompletada"
         tx = Transaction(WebpayOptions(IntegrationCommerceCodes.WEBPAY_PLUS, IntegrationApiKeys.WEBPAY, IntegrationType.TEST))
