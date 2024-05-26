@@ -3,7 +3,7 @@ name: Deploy to AWS
 on:
   push:
     branches:
-      - cd  # Ajusta esto a la rama que deseas desplegar
+      - entrega  # Ajusta esto a la rama que deseas desplegar
 
 jobs:
   deploy:

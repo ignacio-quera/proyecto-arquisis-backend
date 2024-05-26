@@ -93,55 +93,55 @@ services:
     volumes:
       - ./publisher:/publisher/publisher
 
-  redis-broker:
-    # https://redis.com/solutions/use-cases/messaging/
-    image: redis:7
-    ports:
-      - "6379:6379"
-    networks:
-      - app-network
-    volumes:
-      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+  # redis-broker:
+  #   # https://redis.com/solutions/use-cases/messaging/
+  #   image: redis:7
+  #   ports:
+  #     - "6379:6379"
+  #   networks:
+  #     - app-network
+  #   volumes:
+  #     - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
 
 
-  producer:
-    build:
-        context: ./workers
-        dockerfile: Dockerfile
-    command: uvicorn producer:app --reload --host 0.0.0.0 --port 8000
-    volumes:
-      - ./workers:/opt/
-    expose:
-      - 8000
-    ports:
-      - '8003:8000'
-    networks:
-      - app-network
-    environment:
-      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
-      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
-    depends_on:
-      - redis-broker
+  # producer:
+  #   build:
+  #       context: ./workers
+  #       dockerfile: Dockerfile
+  #   command: uvicorn producer:app --reload --host 0.0.0.0 --port 8000
+  #   volumes:
+  #     - ./workers:/opt/
+  #   expose:
+  #     - 8000
+  #   ports:
+  #     - '8003:8000'
+  #   networks:
+  #     - app-network
+  #   environment:
+  #     CELERY_BROKER_URL: ${CELERY_BROKER_URL}
+  #     CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
+  #   depends_on:
+  #     - redis-broker
 
-  consumer:
-    build:
-      context: ./workers
-      dockerfile: Dockerfile
-    deploy:
-      # replicas scales containers
-      replicas: 2
-    # concurrency specifies number of worker
-    # purge deletes the broker queue every time it starts up
-    command: celery -A consumer.celery_app worker --loglevel=INFO --purge --concurrency=1
-    volumes:
-      - ./workers:/opt/
-    networks:
-      - app-network
-    depends_on:
-      - producer
-    environment:
-      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
-      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
+  # consumer:
+  #   build:
+  #     context: ./workers
+  #     dockerfile: Dockerfile
+  #   deploy:
+  #     # replicas scales containers
+  #     replicas: 2
+  #   # concurrency specifies number of worker
+  #   # purge deletes the broker queue every time it starts up
+  #   command: celery -A consumer.celery_app worker --loglevel=INFO --purge --concurrency=1
+  #   volumes:
+  #     - ./workers:/opt/
+  #   networks:
+  #     - app-network
+  #   depends_on:
+  #     - producer
+  #   environment:
+  #     CELERY_BROKER_URL: ${CELERY_BROKER_URL}
+  #     CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
 
 
 networks:
@@ -152,55 +152,3 @@ networks:
 
 volumes: # All the named volumes needed to persist data after container deletion
   db-volume:
-
-  # celery_beat:
-  #   build:
-  #     context: ./project
-  #     dockerfile: Dockerfile
-  #   command: celery -A consumer.celery_app beat --loglevel=INFO
-  #   volumes:
-  #     - ./project:/opt/
-  #   depends_on:
-  #     - producer
-  #   environment:
-  #     CELERY_BROKER_URL: ${CELERY_BROKER_URL}
-  #     CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
-
-  # jobmaster:
-  #   container_name: jobmaster
-  #   build:
-  #       context: ./workers
-  #       dockerfile: Dockerfile
-  #   command: uvicorn producer:app --reload --host 0.0.0.0 --port 8000
-  #   volumes:
-  #     - ./workers:/opt/
-  #   ports:
-  #     - "8000:8000"
-  #   environment:
-  #     CELERY_BROKER_URL: ${CELERY_BROKER_URL}
-  #     CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
-  #   depends_on:
-  #     - redis-broker
-  #   networks:
-  #     - app-network
-  
-  # workers:
-  #   container_name: workers
-  #   build:
-  #       context: ./workers
-  #       dockerfile: Dockerfile
-  #   deploy:
-  #     # replicas scales containers
-  #     replicas: 1
-  #   # concurrency specifies number of worker
-  #   # purge deletes the broker queue every time it starts up
-  #   command: celery -A consumer.celery_app worker --loglevel=INFO --purge --concurrency=1
-  #   volumes:
-  #     - ./workers:/opt/
-  #   depends_on:
-  #     - jobmaster
-  #   environment:
-  #     CELERY_BROKER_URL: ${CELERY_BROKER_URL}
-  #     CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
-  #   networks:
-  #     - app-network

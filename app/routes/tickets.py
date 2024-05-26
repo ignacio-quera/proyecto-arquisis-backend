@@ -73,6 +73,16 @@ async def read_tickets(
         return f"No hay ningún ticket"
     return tickets
 
+@router.get("/{ticket_id}")
+def get_ticket_by_id(
+    ticket_id: int,
+    db: Session = Depends(get_db)
+    ):
+    ticket = crud.get_ticket_by_id(db, ticket_id)
+    if not ticket:
+        return f"No hay ningún ticket con id {ticket_id}"
+    return ticket
+
 @router.post("/create/")
 async def create_ticket(event_data: dict = Body(...), db: Session = Depends(get_db)):
     try:
