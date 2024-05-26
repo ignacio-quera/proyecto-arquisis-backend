@@ -61,26 +61,29 @@ def get_db():
     finally:
         db.close()
 
-@router.get("/{user_id}")
+@router.get("/")
 async def read_tickets(
-    user_id: str,
+    request: Request,
     db: Session = Depends(get_db)
     ):
+    headers = dict(request.headers)
+    user_id = headers.get("user")
+    print(headers, user_id)
     tickets = crud.get_tickets_by_user_id(db, user_id)
-    print(user_id)
+
     if not tickets:
         return f"No hay ningún ticket"
     return tickets
 
-# @router.get("/{ticket_id}")
-# def get_ticket_by_id(
-#     ticket_id: int,
-#     db: Session = Depends(get_db)
-#     ):
-#     ticket = crud.get_ticket_by_id(db, ticket_id)
-#     if not ticket:
-#         return f"No hay ningún ticket con id {ticket_id}"
-#     return ticket
+@router.get("/{ticket_id}")
+def get_ticket_by_id(
+    ticket_id: int,
+    db: Session = Depends(get_db)
+    ):
+    ticket = crud.get_ticket_by_id(db, ticket_id)
+    if not ticket:
+        return f"No hay ningún ticket con id {ticket_id}"
+    return ticket
 
 @router.post("/create/")
 async def create_ticket(event_data: dict = Body(...), db: Session = Depends(get_db)):

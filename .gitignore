@@ -8,3 +8,7 @@ receipt_lambda/.venv/*
 
 # Ignore docs directory
 docs/*
+
+#Ignore pycache
+app/.pytest_cache/*
+app/routes/.pytest_cache/*
