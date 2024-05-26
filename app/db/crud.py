@@ -153,6 +153,7 @@ def get_airport_by_id(db: Session, airport_id: str):
     return db.query(Airport).filter(Airport.id == airport_id).first()
 
 def create_ticket(db: Session, event_data: dict, ticket_id: uuid.UUID):
+    print(event_data)
     try:
         #Obtenermos la información que viene en el JSON del evento
         departure_airport_id = event_data["departure_airport_id"]
@@ -204,6 +205,7 @@ def get_tickets_by_id(db: Session, ticket_id: uuid.UUID):
     )
 
 def get_tickets_by_user_id(db: Session, user_id: int, skip: int = 0, limit: int = 25):
+    print(user_id)
     return (
         db.query(Ticket)
         .order_by(Ticket.time_departure.desc())
