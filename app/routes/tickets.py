@@ -124,7 +124,7 @@ def delete_ticket(
     try:
         ticket_id = request.headers["ticket_id"]
         print(ticket_id, type(ticket_id))
-        id_user = request.headers["id_user"]
+        id_user = request.headers["user"]
         crud.delete_ticket(db, ticket_id)
         tickets = crud.get_tickets_by_user_id(db, id_user)
         return tickets
