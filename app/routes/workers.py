@@ -17,7 +17,7 @@ def get_db():
     finally:
         db.close()
 
-@router.get("/heartbeat")
+@router.get("/")
 async def heartbeat():
     try:
         async with httpx.AsyncClient() as client:
