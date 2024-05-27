@@ -55,7 +55,7 @@ async def make_prediction(request: Request, db: Session = Depends(get_db)):
 
         # #result = flight_prediction.delay(flight_details, user_location)
         async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post("http://producer:8000/job", json=data)
+            response = await client.post("http://producer:8005/job", json=data)
 
         print("WE GOT AN ANSWER")
         print(response)
@@ -113,7 +113,7 @@ async def list_user_predictions(request: Request, db: Session = Depends(get_db))
             job_id = prediction.job_id
             try:
                 async with httpx.AsyncClient() as client:
-                    response = await client.get(f"http://producer:8000/job/{job_id}")
+                    response = await client.get(f"http://producer:8005/job/{job_id}")
                 
                 data = response.json()
                 if data is not None:

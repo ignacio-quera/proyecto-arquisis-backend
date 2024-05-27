@@ -21,7 +21,7 @@ def get_db():
 async def heartbeat():
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.get("http://producer:8000/heartbeat")
+            response = await client.get("http://producer:8005/heartbeat")
             return response.json()
     except Exception as e:
         return {"status": "down"}
