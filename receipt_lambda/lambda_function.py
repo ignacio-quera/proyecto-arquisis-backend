@@ -28,7 +28,7 @@ def generate_pdf(ticket_data):
     c.setFont("Helvetica-Bold", 12)
     c.drawString(50, 620, "Ticket Information:")
     c.setFont("Helvetica", 12)
-    c.drawString(70, 590, f"Ticket ID: {ticket_data['ticket_id']}")
+    c.drawString(70, 590, f"Name: {ticket_data['name']}")
     c.drawString(70, 570, f"Group Number: 23")
     c.drawString(70, 550, f"Flight Number: {ticket_data['flight_number']}")
     c.drawString(70, 530, f"Departure: {ticket_data['departure']}")
