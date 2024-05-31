@@ -76,11 +76,11 @@ async def read_tickets(
     return tickets
 
 @router.get("/{ticket_id}")
-def get_ticket_by_id(
+def get_tickets_by_id(
     ticket_id: str,
     db: Session = Depends(get_db)
     ):
-    ticket = crud.get_ticket_by_id(db, ticket_id)
+    ticket = crud.get_tickets_by_id(db, ticket_id)
     if not ticket:
         return f"No hay ningún ticket con id {ticket_id}"
     return ticket
