@@ -77,7 +77,7 @@ async def read_tickets(
 
 @router.get("/{ticket_id}")
 def get_ticket_by_id(
-    ticket_id: int,
+    ticket_id: str,
     db: Session = Depends(get_db)
     ):
     ticket = crud.get_ticket_by_id(db, ticket_id)
