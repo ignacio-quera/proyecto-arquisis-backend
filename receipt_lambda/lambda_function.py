@@ -1,5 +1,7 @@
 import json
 import boto3
+import base64
+from botocore.exceptions import NoCredentialsError
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from io import BytesIO
@@ -64,20 +66,39 @@ def lambda_handler(event, context):
         )
         
         # Generate S3 file URL
-        s3_url = f"https://{bucket_name}.s3.amazonaws.com/{object_key}"
+        url = s3.generate_presigned_url('get_object',
+                                        Params={'Bucket': bucket_name, 'Key': object_key},
+                                        ExpiresIn=3600)
         
+        pdf_file = s3.get_object(Bucket=bucket_name, Key=object_key)
+        pdf_content = pdf_file['Body'].read()
+        encoded_pdf = base64.b64encode(pdf_content).decode('utf-8')
+        ticket_id = ticket_data['ticket_id']
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/pdf',
+                'Content-Disposition': f'attachment; filename=receipts/{ticket_id}.pdf'
+            },
+            'body': encoded_pdf,
+            'isBase64Encoded': True
+        }
         return {
             'statusCode': 200,
             'body': json.dumps({
                 'message': 'Receipt generated!',
-                'download_url': s3_url
+                'download_url': url
             })
+        }
+    except NoCredentialsError:
+        return {
+            'statusCode': 500,
+            'body': json.dumps({'error': 'Credentials not available'}),
+            'headers': {'Content-Type': 'application/json'}
         }
     except Exception as e:
         return {
             'statusCode': 500,
-            'body': json.dumps({
-                'message': 'Failed to generate receipt',
-                'error': str(e)
-            })
+            'body': json.dumps({'error': str(e)}),
+            'headers': {'Content-Type': 'application/json'}
         }
