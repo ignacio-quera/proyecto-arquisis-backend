@@ -7,6 +7,7 @@ from sqlalchemy import cast, DateTime
 from datetime import datetime, timedelta
 from typing import List, Dict
 import json
+import random
 
 
 #Función que recibe la información del evento y crea los vuelos y los aeropuertos
@@ -349,6 +350,7 @@ def get_airport_coordinates(db: Session, airport_id: str):
         response = requests.get(url)
         # Keep calling the API until we get a successful response
         print(response)
+        print(response.status_code)
         data = response.json()
 
         # Buscar el objeto de tipo "aerodrome" y extraer su latitud y longitud
@@ -358,7 +360,10 @@ def get_airport_coordinates(db: Session, airport_id: str):
             aerodrome_location = next((item for item in data if item['type'] == 'aerodrome'), None)
         else:
             print("Error en la solicitud a la API")
-            coordinates = ['43.678223599999995', '-79.62880467470774']
+            # Generar coordenadas aleatorias si no se puede obtener la información
+            lat = random.uniform(-90, 90)
+            lon = random.uniform(-180, 180)
+            coordinates = [lat, lon]
             return coordinates
 
         if aerodrome_location:
