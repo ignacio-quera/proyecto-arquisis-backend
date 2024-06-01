@@ -8,6 +8,8 @@ import httpx
 import traceback
 import logging
 
+PRODUCER_URL = "http://producer_container:8005"
+
 router = APIRouter()
 result = {}
 # Dependency to get the database session
@@ -55,7 +57,7 @@ async def make_prediction(request: Request, db: Session = Depends(get_db)):
 
         # #result = flight_prediction.delay(flight_details, user_location)
         async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post("http://producer:8005/job", json=data)
+            response = await client.post(f"{PRODUCER_URL}/job", json=data)
 
         print("WE GOT AN ANSWER")
         print(response)

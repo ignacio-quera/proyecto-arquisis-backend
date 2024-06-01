@@ -16,37 +16,37 @@ services:
     depends_on:
       - db
 
-  fastapi_app_2:
-    build:
-      context: .
-      dockerfile: Dockerfile.api
-    ports:
-      - "8001:8000"
-    restart: unless-stopped
-    networks:
-      - mqtt-network
-      - app-network
-    container_name: fastapi_app_2_e2
-    volumes:
-      - ./app:/app/app
-    depends_on:
-      - db
+  # fastapi_app_2:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.api
+  #   ports:
+  #     - "8001:8000"
+  #   restart: unless-stopped
+  #   networks:
+  #     - mqtt-network
+  #     - app-network
+  #   container_name: fastapi_app_2_e2
+  #   volumes:
+  #     - ./app:/app/app
+  #   depends_on:
+  #     - db
 
-  fastapi_app_3:
-    build:
-      context: .
-      dockerfile: Dockerfile.api
-    ports:
-      - "8002:8000"
-    restart: unless-stopped
-    networks:
-      - mqtt-network
-      - app-network
-    container_name: fastapi_app_3_e2
-    volumes:
-      - ./app:/app/app
-    depends_on:
-      - db
+  # fastapi_app_3:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.api
+  #   ports:
+  #     - "8002:8000"
+  #   restart: unless-stopped
+  #   networks:
+  #     - mqtt-network
+  #     - app-network
+  #   container_name: fastapi_app_3_e2
+  #   volumes:
+  #     - ./app:/app/app
+  #   depends_on:
+  #     - db
     
   db:
     image: postgres:latest
@@ -109,6 +109,7 @@ services:
         context: ./workers
         dockerfile: Dockerfile
     command: uvicorn producer:app --reload --host 0.0.0.0 --port 8005
+    container_name: producer_container
     volumes:
       - ./workers:/opt/
     expose:
