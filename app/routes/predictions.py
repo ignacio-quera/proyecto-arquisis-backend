@@ -107,6 +107,7 @@ async def make_prediction(request: Request, db: Session = Depends(get_db)):
 @router.get("/user/")
 async def list_user_predictions(request: Request, db: Session = Depends(get_db)):
     user_id = request.headers.get("user")
+    print(user_id)
     predictions = crud.get_prediction_by_user(user_id, db)
     
     for prediction in predictions:

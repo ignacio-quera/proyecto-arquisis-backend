@@ -358,6 +358,11 @@ def get_airport_coordinates(db: Session, airport_id: str):
                 # Comprobar si la respuesta tiene un status code 401
                 if response.status_code == 401:
                     print("Error 401: No autorizado. Verifique su clave API.")
+                    # Generar coordenadas aleatorias si no se puede obtener la información
+                    lat = random.uniform(-90, 90)
+                    lon = random.uniform(-180, 180)
+                    coordinates = [lat, lon]
+                    return coordinates
                 
                 # Asegurarse de que la respuesta sea en formato JSON
                 try:
