@@ -349,22 +349,22 @@ def get_airport_coordinates(db: Session, airport_id: str):
         # Realizar la solicitud GET a la API
         response = requests.get(url)
         # Keep calling the API until we get a successful response
-        print(response)
-        print(response.status_code)
-        data = response.json()
-
-        # Buscar el objeto de tipo "aerodrome" y extraer su latitud y longitud
-
-        #if data['status'] == 'OK':
-        if response.status_code == "200":
-            aerodrome_location = next((item for item in data if item['type'] == 'aerodrome'), None)
-        else:
+        try:
+            data = response.json()
+        except ValueError as ve:
             print("Error en la solicitud a la API")
+            print("Error al analizar la respuesta JSON:", ve)
             # Generar coordenadas aleatorias si no se puede obtener la información
             lat = random.uniform(-90, 90)
             lon = random.uniform(-180, 180)
             coordinates = [lat, lon]
             return coordinates
+
+        # Buscar el objeto de tipo "aerodrome" y extraer su latitud y longitud
+
+        #if data['status'] == 'OK':
+        if response.status_code == 200:
+            aerodrome_location = next((item for item in data if item['type'] == 'aerodrome'), None)
 
         if aerodrome_location:
             lat = aerodrome_location['lat']
