@@ -96,8 +96,7 @@ def get_flights(
         query = query.filter(func.date(Flight.time_departure) == date_obj)
     
     # Ordenar vuelos por fecha
-    query = query.order_by(Flight.time_departure.asc())
-    flights = query.order_by(Flight.time_departure.asc()).offset(skip).limit(limit).all()  
+    flights = query.order_by(Flight.time_departure.desc()).offset(skip).limit(limit).all()  
 
     return flights
        
@@ -337,9 +336,9 @@ import requests
 # Función para obtener las coordenadas del aeropuerto utilizando geocode.maps.co
 def get_airport_coordinates(db: Session, airport_id: str):
     try:
-        print(airport_id)
         airport = get_airport_by_id(db, airport_id)
         print("Obteniendo coordenadas del aeropuerto")
+        print(airport.name)
         # propia clave de API
         api_key = '6644d887417d1499696616bsid5ffd4'
         
@@ -365,6 +364,6 @@ def get_airport_coordinates(db: Session, airport_id: str):
             print(f"Coordenadas del aeropuerto: {coordinates}")
             return coordinates
     except Exception as e:
-        print(f"Error al obtener las coordenadas del aeropuerto: {str(e)}")
+        print(f"Error al obtener las coordenadas del aeropuerto: {e}")
         return None
 
