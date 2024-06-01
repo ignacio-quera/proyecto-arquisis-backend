@@ -343,10 +343,15 @@ def get_airport_coordinates(db: Session, airport_id: str):
         api_key = '6644d887417d1499696616bsid5ffd4'
         
         # URL de la API de geocodificación
-        url = f'https://geocode.maps.co/search?q={airport.name}&apikey={api_key}'
+        url = f'https://geocode.maps.co/search?q={airport_id}&apikey={api_key}'
 
         # Realizar la solicitud GET a la API
         response = requests.get(url)
+        print(response)
+        # Keep calling the API until we get a successful response
+        while response.status_code != 200:
+            response = requests.get(url)
+            print(f"Intentando obtener las coordenadas del aeropuerto: {response.status_code}")
         data = response.json()
 
         # Buscar el objeto de tipo "aerodrome" y extraer su latitud y longitud
