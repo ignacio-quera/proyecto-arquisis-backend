@@ -347,17 +347,19 @@ def get_airport_coordinates(db: Session, airport_id: str):
 
         # Realizar la solicitud GET a la API
         response = requests.get(url)
-        print(response)
         # Keep calling the API until we get a successful response
-        while response.status_code != 200:
-            response = requests.get(url)
-            print(f"Intentando obtener las coordenadas del aeropuerto: {response.status_code}")
+        print(response)
         data = response.json()
 
         # Buscar el objeto de tipo "aerodrome" y extraer su latitud y longitud
 
         #if data['status'] == 'OK':
-        aerodrome_location = next((item for item in data if item['type'] == 'aerodrome'), None)
+        if response.status_code == 200:
+            aerodrome_location = next((item for item in data if item['type'] == 'aerodrome'), None)
+        else:
+            print("Error en la solicitud a la API")
+            coordinates = ['43.678223599999995', '-79.62880467470774']
+            return coordinates
 
         if aerodrome_location:
             lat = aerodrome_location['lat']
