@@ -356,7 +356,7 @@ def get_airport_coordinates(db: Session, airport_id: str):
         # Buscar el objeto de tipo "aerodrome" y extraer su latitud y longitud
 
         #if data['status'] == 'OK':
-        if response.status_code == 200:
+        if response.status_code == "200":
             aerodrome_location = next((item for item in data if item['type'] == 'aerodrome'), None)
         else:
             print("Error en la solicitud a la API")
