@@ -18,7 +18,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
         with:
           registry: public.ecr.aws/z7c1v8x9/flightappbackend # Reemplaza con tu ECR URI público
-
+  
       - name: Build, tag, and push Docker image to Amazon ECR
         env:
           ECR_REGISTRY: public.ecr.aws/z7c1v8x9/flightappbackend

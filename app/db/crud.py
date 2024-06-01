@@ -95,7 +95,9 @@ def get_flights(
         # Filtrar vuelos cuya fecha de salida sea igual a la fecha indicada
         query = query.filter(func.date(Flight.time_departure) == date_obj)
     
-    flights = query.offset(skip).limit(limit).all()  
+    # Ordenar vuelos por fecha
+    query = query.order_by(Flight.time_departure.asc())
+    flights = query.order_by(Flight.time_departure.asc()).offset(skip).limit(limit).all()  
 
     return flights
        
