@@ -348,7 +348,7 @@ def get_airport_coordinates(db: Session, airport_id: str):
         url = f'https://geocode.maps.co/search?q={airport_id}&apikey={api_key}'
 
         attempt = 0
-        while attempt < 3:
+        while attempt < 10:
             try:
                 # Realizar la solicitud GET a la API
                 response = requests.get(url)
@@ -358,7 +358,6 @@ def get_airport_coordinates(db: Session, airport_id: str):
                 # Comprobar si la respuesta tiene un status code 401
                 if response.status_code == 401:
                     print("Error 401: No autorizado. Verifique su clave API.")
-                    return None
                 
                 # Asegurarse de que la respuesta sea en formato JSON
                 try:
