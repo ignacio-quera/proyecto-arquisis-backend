@@ -7,6 +7,8 @@ from app.db.database import SessionLocal
 import httpx
 import traceback
 
+PRODUCER_URL = "http://producer_container:8005"
+
 router = APIRouter()
 result = {}
 # Dependency to get the database session
@@ -21,7 +23,7 @@ def get_db():
 async def heartbeat():
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.get("http://producer:8005/heartbeat")
+            response = await client.get(f"{PRODUCER_URL}/heartbeat")
             return response.json()
     except Exception as e:
         return {"status": "down"}

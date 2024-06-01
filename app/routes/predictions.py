@@ -115,7 +115,7 @@ async def list_user_predictions(request: Request, db: Session = Depends(get_db))
             job_id = prediction.job_id
             try:
                 async with httpx.AsyncClient() as client:
-                    response = await client.get(f"http://producer:8005/job/{job_id}")
+                    response = await client.get(f"{PRODUCER_URL}/job/{job_id}")
                 
                 data = response.json()
                 if data is not None:
