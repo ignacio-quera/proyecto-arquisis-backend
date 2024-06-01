@@ -6,8 +6,9 @@ from datetime import datetime, date, timedelta
 from sqlalchemy import cast, DateTime
 from datetime import datetime, timedelta
 from typing import List, Dict
-import json
+from requests.exceptions import RequestException
 import random
+import time
 
 
 #Función que recibe la información del evento y crea los vuelos y los aeropuertos
@@ -346,35 +347,57 @@ def get_airport_coordinates(db: Session, airport_id: str):
         # URL de la API de geocodificación
         url = f'https://geocode.maps.co/search?q={airport_id}&apikey={api_key}'
 
-        # Realizar la solicitud GET a la API
-        response = requests.get(url)
-        # Keep calling the API until we get a successful response
-        try:
-            data = response.json()
-        except ValueError as ve:
-            print("Error en la solicitud a la API")
-            print("Error al analizar la respuesta JSON:", ve)
-            # Generar coordenadas aleatorias si no se puede obtener la información
-            lat = random.uniform(-90, 90)
-            lon = random.uniform(-180, 180)
-            coordinates = [lat, lon]
-            return coordinates
+        attempt = 0
+        while attempt < 3:
+            try:
+                # Realizar la solicitud GET a la API
+                response = requests.get(url)
+                print(response)
+                print(response.status_code)
 
-        # Buscar el objeto de tipo "aerodrome" y extraer su latitud y longitud
+                # Comprobar si la respuesta tiene un status code 401
+                if response.status_code == 401:
+                    print("Error 401: No autorizado. Verifique su clave API.")
+                    return None
+                
+                # Asegurarse de que la respuesta sea en formato JSON
+                try:
+                    data = response.json()
+                except ValueError as ve:
+                    print("Error al analizar la respuesta JSON:", ve)
 
-        #if data['status'] == 'OK':
-        if response.status_code == 200:
-            aerodrome_location = next((item for item in data if item['type'] == 'aerodrome'), None)
+                # Buscar el objeto de tipo "aerodrome" y extraer su latitud y longitud
+                if response.status_code == 200:
+                    aerodrome_location = next((item for item in data if item['type'] == 'aerodrome'), None)
+                else:
+                    print("Error en la solicitud a la API")
+                    # Generar coordenadas aleatorias si no se puede obtener la información
+                    lat = random.uniform(-90, 90)
+                    lon = random.uniform(-180, 180)
+                    coordinates = [lat, lon]
+                    return coordinates
 
-        if aerodrome_location:
-            lat = aerodrome_location['lat']
-            lon = aerodrome_location['lon']
-            # Extraer las coordenadas del resultado de la geocodificación
-            #location = data['results'][0]['geometry']['location']
-            #coordinates = (location['lat'], location['lng'])
-            coordinates = [lat, lon]
-            print(f"Coordenadas del aeropuerto: {coordinates}")
-            return coordinates
+                if aerodrome_location:
+                    lat = aerodrome_location['lat']
+                    lon = aerodrome_location['lon']
+                    coordinates = [lat, lon]
+                    print(f"Coordenadas del aeropuerto: {coordinates}")
+                    return coordinates
+                else:
+                    print("No se encontró un objeto de tipo 'aerodrome'")
+                    return None
+            
+            except RequestException as e:
+                print(f"Error en la solicitud: {e}. Reintentando...")
+                attempt += 1
+                time.sleep(backoff_factor * (2 ** attempt))
+        
+        # Generar coordenadas aleatorias si no se puede obtener la información tras varios intentos
+        lat = random.uniform(-90, 90)
+        lon = random.uniform(-180, 180)
+        coordinates = [lat, lon]
+        return coordinates
+
     except Exception as e:
         print(f"Error al obtener las coordenadas del aeropuerto: {e}")
         return None
