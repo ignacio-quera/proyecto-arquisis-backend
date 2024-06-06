@@ -88,7 +88,7 @@ def get_tickets_by_id(
         return f"No hay ningún ticket con id {ticket_id}"
     return ticket
 
-@router.post("/create/")
+@router.post("/")
 async def create_ticket(event_data: dict = Body(...), db: Session = Depends(get_db)):
     try:
         request_id = uuid.uuid4()
@@ -109,7 +109,7 @@ async def create_ticket(event_data: dict = Body(...), db: Session = Depends(get_
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
-@router.patch("/update/")
+@router.patch("/")
 def update_ticket(event_data: dict = Body(...), db: Session = Depends(get_db)):
     print("actualizando un ticket")
     try:
@@ -119,7 +119,7 @@ def update_ticket(event_data: dict = Body(...), db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.delete("/delete")
+@router.delete("/")
 def delete_ticket(
     request: Request,
     db: Session = Depends(get_db)):

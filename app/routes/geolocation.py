@@ -17,7 +17,7 @@ def get_db():
     finally:
         db.close()
 
-@router.get("/get-ip")
+@router.get("/")
 async def get_ip():
     try:
         async with httpx.AsyncClient(follow_redirects=True) as client:
@@ -27,7 +27,7 @@ async def get_ip():
     except Exception as e:
         return {"error": "Failed to fetch IP address"}
     
-@router.post("/user_address")
+@router.post("/")
 async def get_address(event_data: dict = Body(...), db: Session = Depends(get_db)):
     user_id = event_data["user_id"]
     latitude = event_data["latitude"]

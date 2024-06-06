@@ -20,7 +20,7 @@ def get_db():
     finally:
         db.close()
 
-@router.post("/make_prediction")
+@router.post("/")
 async def make_prediction(request: Request, db: Session = Depends(get_db)):
     print("adentro de make_prediction")
     try:
@@ -104,7 +104,7 @@ async def make_prediction(request: Request, db: Session = Depends(get_db)):
 #     except Exception as e:
 #         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/user/")
+@router.get("/")
 async def list_user_predictions(request: Request, db: Session = Depends(get_db)):
     user_id = request.headers.get("user")
     print(request.headers)

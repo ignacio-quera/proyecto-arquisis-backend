@@ -13,7 +13,7 @@ def get_db():
     finally:
         db.close()
 
-@router.post("/create/")
+@router.post("/")
 def create_flights(event_data: dict = Body(...), db: Session = Depends(get_db)):
     print("creando un vuelo")
     print(event_data)

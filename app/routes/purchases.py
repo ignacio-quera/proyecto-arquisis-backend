@@ -61,7 +61,7 @@ def send_email(to_email, subject, body):
         print(f"Error al enviar correo: {e}")
         return False
 
-@router.post('/webpayconfirm')
+@router.post('/')
 async def webpay_confirm(event_data: dict = Body(...), db: Session = Depends(get_db)):
     try:
         transaction = Transaction(WebpayOptions(IntegrationCommerceCodes.WEBPAY_PLUS, IntegrationApiKeys.WEBPAY, IntegrationType.TEST))
