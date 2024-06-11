@@ -84,25 +84,6 @@ async def make_prediction(request: Request, db: Session = Depends(get_db)):
         
         # Lanzar una excepción HTTP con el mensaje detallado
         raise HTTPException(status_code=500, detail=detailed_error_message) 
-    
-# @router.get("/prediction/")
-# async def get_prediction(request: Request, db: Session = Depends(get_db)):
-#     user_id = request.headers.get("user")
-#     try:
-#         if not user_id:
-#             raise ValueError("User ID is required in the headers")
-#         print("hola")
-#         prediction = crud.get_prediction_by_user(db, user_id)
-#         print(prediction)
-#         if not prediction:
-#             raise HTTPException(status_code=404, detail="No prediction found")
-
-#         return prediction
-
-#     except ValueError as ve:
-#         raise HTTPException(status_code=400, detail=str(ve))
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/")
 async def list_user_predictions(request: Request, db: Session = Depends(get_db)):

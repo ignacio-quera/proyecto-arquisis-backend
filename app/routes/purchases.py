@@ -91,7 +91,7 @@ async def webpay_confirm(event_data: dict = Body(...), db: Session = Depends(get
             try:
                 async with httpx.AsyncClient() as client:
                     print("HAGAMOS UNA PREDCICCION")
-                    make_prediction_response = await client.post(f"{BACKEND_URL}/predictions/make_prediction", json={"user_id": user_id})
+                    make_prediction_response = await client.post(f"{BACKEND_URL}/predictions/", json={"user_id": user_id})
                     make_prediction_result = make_prediction_response.json()
                     print("PREDICCION REALIZADA")
                     print(make_prediction_result)

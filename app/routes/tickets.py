@@ -49,8 +49,8 @@ def get_airport_coordinates(airport_name):
 
 
 PUBLISHER_URL = "http://publisher_container:9001"
-# FRONTEND_URL = "http://localhost:3000"
-FRONTEND_URL = "https://www.angegazituae0.me"
+FRONTEND_URL = "http://localhost:3000"
+# FRONTEND_URL = "https://www.angegazituae0.me"
 
 router = APIRouter()
 # Dependency to get the database session
