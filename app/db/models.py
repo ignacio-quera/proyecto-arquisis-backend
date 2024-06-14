@@ -65,10 +65,12 @@ class Users(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
+    is_admin = Column(Boolean, default=False)
 
 class UserCreate(BaseModel):
     email: str
     password: str
+    is_admin : bool 
 
 class Ticket(Base):
 

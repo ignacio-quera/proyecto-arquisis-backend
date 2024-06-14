@@ -33,15 +33,6 @@ def get_db():
         db.close()
 
 
-# async def send_email(user_email: str, subject: str, message: str):
-#     email_message = MessageSchema(
-#         subject=subject,
-#         recipients=[user_email],  # Lista de destinatarios
-#         body=message,
-#         subtype="html"
-#     )
-#     await fm.send_message(email_message)
-
 def send_email(to_email, subject, body):
     try:
         msg = MIMEMultipart()

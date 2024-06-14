@@ -326,10 +326,10 @@ def get_last_approved_ticket(db: Session, user_id: int):
 # Obtener los ultimos 20 vuelos, respecto a la fecha de salida, que salgan dentro de la semana
 # después de la compra, que vayan desde el aeropuerto de destino encontrado en el punto 2. 
 def get_upcoming_flights(db: Session, airport_id: str, departure_date: str):
-    week_after_purchase = departure_date + timedelta(days=7)
+    #week_after_purchase = departure_date + timedelta(days=7)
     return db.query(Flight).filter(
         Flight.departure_airport_id == airport_id,
-        Flight.time_departure <= week_after_purchase,
+        #Flight.time_departure <= week_after_purchase,
         Flight.time_departure > departure_date
     ).order_by(Flight.time_departure.asc()).limit(20).all()
 

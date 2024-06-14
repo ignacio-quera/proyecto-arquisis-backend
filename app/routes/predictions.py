@@ -69,9 +69,30 @@ async def make_prediction(request: Request, db: Session = Depends(get_db)):
             print(job_id)
             #(db: Session, user_id: str, job_id:str,  recommended_flights: list
             crud.create_prediction(db, user_id, job_id)
+
+            predictions = crud.get_prediction_by_user(user_id, db)
+    
+            for prediction in predictions:
+                print(prediction)
+                if prediction.status == "Pending":
+                    job_id = prediction.job_id
+                    try:
+                        async with httpx.AsyncClient() as client:
+                            response = await client.get(f"{PRODUCER_URL}/job/{job_id}")
+                        
+                        data = response.json()
+                        if data is not None:
+                            print(data)
+                            recommended_flights = data["result"]
+                            crud.update_prediction(job_id, recommended_flights, db)
+                    
+                    except Exception as e:
+                        logging.error(f"Error: {e}")
+                        raise HTTPException(status_code=500, detail="Se produjo un error interno en el servidor")
             return {"message": "Operación exitosa"}
         else:
             raise HTTPException(status_code=response.status_code, detail="Error al realizar la solicitud externa")
+        
     
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
@@ -90,24 +111,5 @@ async def list_user_predictions(request: Request, db: Session = Depends(get_db))
     user_id = request.headers.get("user")
     print(request.headers)
     print(user_id)
-    predictions = crud.get_prediction_by_user(user_id, db)
-    
-    for prediction in predictions:
-        print(prediction)
-        if prediction.status == "Pending":
-            job_id = prediction.job_id
-            try:
-                async with httpx.AsyncClient() as client:
-                    response = await client.get(f"{PRODUCER_URL}/job/{job_id}")
-                
-                data = response.json()
-                if data is not None:
-                    print(data)
-                    recommended_flights = data["result"]
-                    crud.update_prediction(job_id, recommended_flights, db)
-            
-            except Exception as e:
-                logging.error(f"Error: {e}")
-                raise HTTPException(status_code=500, detail="Se produjo un error interno en el servidor")
     
     return crud.get_prediction_by_user(user_id, db)

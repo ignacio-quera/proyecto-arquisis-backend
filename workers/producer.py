@@ -37,10 +37,6 @@ async def create_job(request: Request):
 def heartbeat():
     return {'working': 'True'}
 
-@app.get('/job')
-def get_job():
-    return {'working': 'True'}
-
 # @app.post("/job")
 # async def create_job(request: Request):
 #     data = await request.json()
