@@ -83,6 +83,7 @@ class Ticket(Base):
     seller = Column(String)
     amount = Column(Integer)
     status = Column(String)
+    price = Column(Integer)
         
 class TicketCreate(BaseModel):
     id: uuid.UUID
@@ -95,6 +96,7 @@ class TicketCreate(BaseModel):
     seller: str
     amount: int
     status: str
+    price: int
 
 class Prediction(Base):
 

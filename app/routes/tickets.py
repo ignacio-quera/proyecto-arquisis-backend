@@ -92,6 +92,7 @@ def get_tickets_by_id(
 async def create_ticket(event_data: dict = Body(...), db: Session = Depends(get_db)):
     try:
         request_id = uuid.uuid4()
+        print("hola")
         ticket = crud.create_ticket(db, event_data, request_id)
         print(ticket)
         event_data["request_id"] = str(request_id)

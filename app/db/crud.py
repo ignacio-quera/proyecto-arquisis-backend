@@ -165,8 +165,10 @@ def create_ticket(db: Session, event_data: dict, ticket_id: uuid.UUID):
         flight_id = int(event_data["flight_id"])
         time_departure = event_data["time_departure"]
         seller = event_data["seller"]
+        price = event_data.get("price", 100)
         status = event_data["status"]
         amount = int(event_data["amount"])
+    
 
         #Creamos el objeto Ticket con la información del ticket y sus atributos
         ticket = Ticket(
@@ -179,6 +181,7 @@ def create_ticket(db: Session, event_data: dict, ticket_id: uuid.UUID):
             datetime=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             seller=seller,
             status="pending",
+            price=price,
             amount=amount
         )
 
