@@ -45,6 +45,7 @@ app.add_middleware(
 @app.post("/requests")
 async def publish(event_data: dict = Body(...)):
     print("Publishing message")
+    print(event_data)
     try:
         request = {
             "request_id": event_data["request_id"],
@@ -55,7 +56,7 @@ async def publish(event_data: dict = Body(...)):
             "datetime": time.strftime('%Y-%m-%d %H:%M:%S'),
             "deposit_token": event_data["token"],
             "quantity": event_data["amount"],
-            "seller": 0,
+            "seller": event_data["seller"],
         }
         print(request)
         request = json.dumps(request)
@@ -66,12 +67,13 @@ async def publish(event_data: dict = Body(...)):
     
 @app.post("/validations")
 async def publish(event_data: dict = Body(...)):
-    print("Publishing message")
+    print("Publishing message validation")
+    print(event_data)
     try:
         request = {
             "request_id": event_data["request_id"],
             "group_id": 23,
-            "seller": 0,
+            "seller": event_data["seller"],
             "valid": event_data["valid"]
         }
         print(request)

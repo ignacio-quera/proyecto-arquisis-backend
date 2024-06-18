@@ -216,6 +216,15 @@ def get_tickets_by_user_id(db: Session, user_id: int, skip: int = 0, limit: int 
         .all()
     )
 
+def get_admin_tickets(db: Session, seller: str, skip: int = 0, limit: int = 25):
+    print(seller)
+    return (
+        db.query(Ticket)
+        .order_by(Ticket.time_departure.desc())
+        .filter(Ticket.seller == seller)
+        .all()
+    )
+
 def delete_ticket(db: Session, ticket_id: uuid.UUID):
     db.query(Ticket).filter(Ticket.id == ticket_id).delete()
     db.commit()
@@ -405,4 +414,3 @@ def get_airport_coordinates(db: Session, airport_id: str):
     except Exception as e:
         print(f"Error al obtener las coordenadas del aeropuerto: {e}")
         return None
-

@@ -55,8 +55,6 @@ class FlightCreate(BaseModel):
     price: int
     currency: str
     seats_available: int
-
-
  # Creamos el modelo de usuario   
 
 class Users(Base):

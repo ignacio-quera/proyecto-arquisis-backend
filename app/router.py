@@ -5,6 +5,7 @@ from app.routes.geolocation import router as geolocation_router
 from app.routes.predictions import router as predictions_router
 from app.routes.purchases import router as purchases_router
 from app.routes.workers import router as workers_router
+from app.routes.admintickets import router as admin_tickets_router
 router = APIRouter()
 
 router.include_router(flights_router, tags=["flights"], prefix="/flights")
@@ -13,3 +14,4 @@ router.include_router(purchases_router, tags=["purchases"], prefix="/purchases")
 router.include_router(geolocation_router, tags=["geolocation"], prefix="/geolocation")
 router.include_router(predictions_router, tags=["predictions"], prefix="/predictions")
 router.include_router(workers_router, tags=["workers"], prefix="/workers")
+router.include_router(admin_tickets_router, tags=["admintickets"], prefix="/admintickets")
