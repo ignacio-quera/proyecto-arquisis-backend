@@ -5,7 +5,7 @@ import json
 import requests
 from dotenv import load_dotenv
 import os
-from topic_handler import handleFlightInfo, handleTicketValidation
+from topic_handler import handleFlightInfo, handleTicketValidation, handleAuction
 
 # Especifica la ruta completa al archivo .env que deseas cargar
 load_dotenv("mqtt_listener.env", override=True) 
@@ -20,6 +20,7 @@ API_URL = os.getenv("API_URL")
 topicHandlers = {
   'flights/info': handleFlightInfo,
   'flights/validation': handleTicketValidation,
+  'flights/auctions': handleAuction
 };
 
 # Callback cuando se conecta al broker MQTT

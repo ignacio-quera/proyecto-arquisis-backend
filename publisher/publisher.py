@@ -17,6 +17,7 @@ USER = os.getenv("USER")
 PASSWORD = os.getenv("PASSWORD")
 TOPIC_REQUEST = "flights/requests"
 TOPIC_VALIDATION = "flights/validations"
+TOPIC_AUCTION = "flights/auctions"
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
@@ -83,6 +84,28 @@ async def publish(event_data: dict = Body(...)):
         print(e)
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/auctions")
+async def publish(event_data: dict = Body(...)):
+    print("Publishing message auction")
+    print(event_data)
+    try:
+        request = {
+            "auction_id": "<uuid>",
+            "proposal_id": "",
+            "departure_airport": event_data["departure_airport_id"],
+            "arrival_airport": event_data["arrival_airport_id"],
+            "departure_time": event_data["time_departure"],
+            "airline": "",
+            "quantity": event_data["amount"],
+            "group_id":23,
+            "type": "offer"
+        }
+        print(request)
+        request = json.dumps(request)
+        client.publish(TOPIC_AUCTION, request)
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/")
 async def root():

@@ -84,3 +84,7 @@ def handleTicketValidation(data):
     except Exception as e:
         print("Error al manejar el mensaje:", e)
     pass
+
+def handleAuction(data):
+    
+    pass
