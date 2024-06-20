@@ -7,6 +7,13 @@ WORKDIR /app
 # Copia la carpeta "app" completa al directorio de trabajo del contenedor
 COPY app/ /app
 COPY .env /app
+COPY newrelic.ini /app/newrelic.ini
+
+# Establece las variables de entorno necesarias
+ENV NEW_RELIC_CONFIG_FILE=/app/newrelic.ini
+ENV NEW_RELIC_APP_NAME="FlightsAPI"
+ENV NEW_RELIC_LICENSE_KEY=e11f656851bc0de865208bb94151a743FFFFNRAL
+
 
 # Revisa que se haya copiado la carpeta "app" al directorio de trabajo del contenedor
 RUN ls -a
@@ -18,4 +25,6 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 EXPOSE 8000
 
 # Comando para iniciar la aplicación FastAPI
-CMD ["python", "main.py"]
+CMD ["newrelic-admin", "run-program", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+# CMD ["NEW_RELIC_CONFIG_FILE=newrelic.ini newrelic-admin run-program uvicorn main:app --host 0.0.0.0 --port 8000"]
