@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main  # Adjust according to your project branch
+      - entrega
+      - arreglo_workers
   pull_request:
     branches:
       - main  # Adjust according to your project branch
@@ -24,6 +26,11 @@ jobs:
       run: |
         pip install pylint
         pylint app/*.py  # Adjust path according to your project structure
+    - name: Bump version and tag
+        run: |
+          python bump_version.py
+          git push --follow-tags
+    
   test:
     name: Test
     runs-on: ubuntu-latest
