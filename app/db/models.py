@@ -129,3 +129,12 @@ class UserLocationCreate(BaseModel):
     longitud : str
     latitude : str
     pass
+
+class Auction(Base):
+    id = uuid.UUID
+    proposal_id =  uuid.UUID
+    flightId = Column(Integer)
+    quantity = Column(Integer)
+    group_id = Column(Integer)
+    airline = Column(String)
+    type = Column(String)
