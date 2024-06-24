@@ -10,7 +10,7 @@ from app.router import router
 app = FastAPI()
 
 origins = [
-    "*",
+    "*",  # Allow all
 ]   
 
 app.add_middleware(

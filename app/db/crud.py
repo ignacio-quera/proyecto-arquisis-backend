@@ -11,7 +11,7 @@ import random
 import time
 
 
-#Función que recibe la información del evento y crea los vuelos y los aeropuertos
+# Función que recibe la información del evento y crea los vuelos y los aeropuertos
 def create_event_with_flight(db: Session, event_data: dict):
     try:
         #Obtenermos la información que viene en el JSON del evento
@@ -34,7 +34,7 @@ def create_event_with_flight(db: Session, event_data: dict):
             arrival_airport = Airport(id=arrival_airport_id, name=arrival_airport_name)
             db.add(arrival_airport)
 
-        #Creamos el objeto Flight con la información del vuelo y sus atributos
+        # Creamos el objeto Flight con la información del vuelo y sus atributos
         flight = Flight(
             departure_airport_id=departure_airport.id,
             departure_airport_name=departure_airport.name,
@@ -73,13 +73,13 @@ def get_flights(
     skip: int = 0, 
     limit: int = 25
 ):
-    #Obtenemos la fecha actual para filtrar vuelos pasados
+    # Obtenemos la fecha actual para filtrar vuelos pasados
     current_date = datetime.now()
 
-    #Aplicar la consulta base para los vuelos
+    # Aplicar la consulta base para los vuelos
     query = db.query(Flight)
 
-    #Aplicamos filtros si corresponde
+    # Aplicamos filtros si corresponde
 
     # Si se recibe alguno de los parámetros de búsqueda debemos solo mostrar los que no han salido!
     if (departure or arrival or date):
@@ -103,7 +103,7 @@ def get_flights(
     return flights
        
     
-#RF2 - ofrecer un endpoint para mostrar el detalle de cada vuelo recibido desde el broker.
+# RF2 - ofrecer un endpoint para mostrar el detalle de cada vuelo recibido desde el broker.
 def get_flights_by_id(db: Session, flight_id: int, skip: int = 0, limit: int = 25):
     return (
         db.query(Flight)
@@ -158,7 +158,7 @@ def get_airport_by_id(db: Session, airport_id: str):
 def create_ticket(db: Session, event_data: dict, ticket_id: uuid.UUID):
     print(event_data)
     try:
-        #Obtenermos la información que viene en el JSON del evento
+        # Obtenermos la información que viene en el JSON del evento
         departure_airport_id = event_data["departure_airport_id"]
         arrival_airport_id = event_data["arrival_airport_id"]
         user_id = event_data["user_id"]
@@ -170,7 +170,7 @@ def create_ticket(db: Session, event_data: dict, ticket_id: uuid.UUID):
         amount = int(event_data["amount"])
     
 
-        #Creamos el objeto Ticket con la información del ticket y sus atributos
+        # Creamos el objeto Ticket con la información del ticket y sus atributos
         ticket = Ticket(
             id=ticket_id,
             id_user=user_id,
@@ -328,7 +328,7 @@ def get_tickets_by_user_id(db: Session, user_id: int, skip: int = 0, limit: int 
         .all()
     )
 
-#Obtener el último ticker comprado por el usuario
+# Obtener el último ticker comprado por el usuario
 def get_last_approved_ticket(db: Session, user_id: int):
     return db.query(Ticket).filter(
         Ticket.id_user == user_id,
@@ -417,3 +417,27 @@ def get_airport_coordinates(db: Session, airport_id: str):
     except Exception as e:
         print(f"Error al obtener las coordenadas del aeropuerto: {e}")
         return None
+
+# RF08: Aplicar descuento
+def apply_discount_to_ticket(db: Session, ticket_id: uuid.UUID, discount_percentage: int):
+    try:
+        # Obtener el ticket por su ID
+        ticket = db.query(Ticket).filter(Ticket.id == ticket_id).first()
+        if not ticket:
+            raise ValueError(f"Ticket with id {ticket_id} not found")
+
+        # Calcular el nuevo precio aplicando el descuento
+        original_price = ticket.price
+        discount_amount = (original_price * discount_percentage) / 100
+        new_price = original_price - discount_amount
+
+        # Actualizar el precio del ticket
+        db.query(Ticket).filter(Ticket.id == ticket_id).update({Ticket.price: new_price})
+        db.commit()
+        db.refresh(ticket)
+
+        return ticket
+    except Exception as e:
+        print("Error: ", e)
+        db.rollback()
+        raise

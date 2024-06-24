@@ -86,7 +86,7 @@ async def create_ticket(event_data: dict = Body(...), db: Session = Depends(get_
         try:
             result = tx.create(buy_order, event_data["request_id"], event_data["amount"], return_url)
             event_data["token"] = result["token"]
-            requests.post(f'{PUBLISHER_URL}/requests', json=event_data)
+            #requests.post(f'{PUBLISHER_URL}/requests', json=event_data)
             return result
         except TransbankError as e:
             print(e.message)
@@ -118,3 +118,16 @@ def delete_ticket(
         return tickets
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/{ticket_id}")
+def get_tickets_by_id(
+    ticket_id: str,
+    db: Session = Depends(get_db)
+    ):
+    print(ticket_id, type(ticket_id))
+    ticket_uid = uuid.UUID(ticket_id)
+    print(ticket_uid, type(ticket_uid))
+    ticket = crud.get_tickets_by_id(db, ticket_uid)
+    if not ticket:
+        return f"No hay ningún ticket con id {ticket_id}"
+    return ticket
