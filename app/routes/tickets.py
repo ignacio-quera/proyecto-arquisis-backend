@@ -84,6 +84,7 @@ def get_tickets_by_id(
     ticket_uid = uuid.UUID(ticket_id)
     print(ticket_uid, type(ticket_uid))
     ticket = crud.get_tickets_by_id(db, ticket_uid)
+    print(ticket.id)
     if not ticket:
         return f"No hay ningún ticket con id {ticket_id}"
     return ticket

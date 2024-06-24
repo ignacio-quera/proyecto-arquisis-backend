@@ -10,7 +10,8 @@ import uuid
 import json
 from app.db import crud
 from app.db.database import SessionLocal
-import httpx
+from app.db.models import TicketCreate
+import httpx 
 
 def get_airport_coordinates(airport_code):
     base_url = "https://geocode.maps.co"
@@ -30,24 +31,8 @@ def get_airport_coordinates(airport_code):
         raise Exception(f"API request failed with status {response.status_code}: {response.text}")
 
 
-def get_airport_coordinates(airport_name):
-    base_url = "https://geocode.maps.co"
-    params = {'q': airport_name}
-    response = requests.get(base_url, params=params)
-    if response.status_code == 200:
-        results = response.json()
-        if results:
-            first_result = results[0]  # Assuming the first result is the most relevant
-            lat = first_result['lat']
-            lon = first_result['lon']
-            return (lat, lon)
-        else:
-            return None
-    else:
-        raise Exception(f"API request failed with status {response.status_code}: {response.text}")
 
-
-PUBLISHER_URL = "http://publisher_container:9001"
+#PUBLISHER_URL = "http://publisher_container:9001"
 FRONTEND_URL = "http://localhost:3000"
 # FRONTEND_URL = "https://www.angegazituae0.me"
 
@@ -63,34 +48,38 @@ def get_db():
 
 @router.get("/")
 async def get_admin_tickets(
+    request: Request,
     db: Session = Depends(get_db)
     ):
+    user_id = request.headers["user"]
     seller = "23"
     print("hola")
-    tickets = crud.get_admin_tickets(db, seller)
+    tickets = crud.get_admin_tickets(db, user_id)
     print("pasamos el crud")
     if not tickets:
         return f"No hay ningún ticket"
     return tickets
 
 @router.post("/")
-async def create_ticket(event_data: dict = Body(...), db: Session = Depends(get_db)):
+async def update_ticket_for_user(event_data: dict = Body(...), db: Session = Depends(get_db)):
     try:
         request_id = uuid.uuid4()
-        ticket = crud.create_ticket(db, event_data, request_id)
+        print(event_data)
+        ticket = crud.update_ticket_user(db, event_data)
         print(ticket)
-        event_data["request_id"] = str(request_id)
-        return_url = f"{FRONTEND_URL}/compracompletada?ticket_id={ticket.id}&flight_id={ticket.flight_id}&amount={ticket.amount}"
-        tx = Transaction(WebpayOptions(IntegrationCommerceCodes.WEBPAY_PLUS, IntegrationApiKeys.WEBPAY, IntegrationType.TEST))
-        buy_order = str(random.randrange(1000000, 99999999))
-        try:
-            result = tx.create(buy_order, event_data["request_id"], event_data["amount"], return_url)
-            event_data["token"] = result["token"]
-            #requests.post(f'{PUBLISHER_URL}/requests', json=event_data)
-            return result
-        except TransbankError as e:
-            print(e.message)
-            return {"error": e.message}
+        # event_data["request_id"] = str(request_id)
+        # return_url = f"{FRONTEND_URL}/compracompletada?ticket_id={ticket.id}&flight_id={ticket.flight_id}&amount={ticket.amount}"
+        # tx = Transaction(WebpayOptions(IntegrationCommerceCodes.WEBPAY_PLUS, IntegrationApiKeys.WEBPAY, IntegrationType.TEST))
+        # buy_order = str(random.randrange(1000000, 99999999))
+        # try:
+        #     result = tx.create(buy_order, event_data["request_id"], event_data["amount"], return_url)
+        #     event_data["token"] = result["token"]
+        #     ticket = crud.update_ticket_user(db, event_data, request_id)
+        #     #requests.post(f'{PUBLISHER_URL}/requests', json=event_data)
+        #     return result
+        # except TransbankError as e:
+        #     print(e.message)
+        #     return {"error": e.message}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
@@ -130,4 +119,19 @@ def get_tickets_by_id(
     ticket = crud.get_tickets_by_id(db, ticket_uid)
     if not ticket:
         return f"No hay ningún ticket con id {ticket_id}"
+    return ticket
+
+@router.post("/{ticket_id}/discount")
+def apply_discount(
+    ticket_id: str,
+    request: Request,
+    db: Session = Depends(get_db)
+    ):
+    print(request.headers)
+    discount_percentage = int(request.headers["discount"])
+    print(discount_percentage, type(discount_percentage))
+    print(ticket_id, type(ticket_id))
+    ticket_uid = uuid.UUID(ticket_id)
+    print(ticket_uid, type(ticket_uid))
+    ticket = crud.apply_discount_to_ticket(db, ticket_uid, discount_percentage)
     return ticket

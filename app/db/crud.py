@@ -165,7 +165,7 @@ def create_ticket(db: Session, event_data: dict, ticket_id: uuid.UUID):
         flight_id = int(event_data["flight_id"])
         time_departure = event_data["time_departure"]
         seller = event_data["seller"]
-        price = event_data.get("price", 100)
+        price = event_data.get("price",100)
         status = event_data["status"]
         amount = int(event_data["amount"])
     
@@ -205,9 +205,12 @@ def update_ticket(db: Session, ticket_id: uuid.UUID, status: str):
     db.commit()
 
 def get_tickets_by_id(db: Session, ticket_id: uuid.UUID):
+    print("entramos al crud")
+    print(ticket_id)
     return (
         db.query(Ticket)
         .filter(Ticket.id == ticket_id)
+        .first()
     )
 
 def get_tickets_by_user_id(db: Session, user_id: int, skip: int = 0, limit: int = 25):
@@ -219,12 +222,12 @@ def get_tickets_by_user_id(db: Session, user_id: int, skip: int = 0, limit: int 
         .all()
     )
 
-def get_admin_tickets(db: Session, seller: str, skip: int = 0, limit: int = 25):
-    print(seller)
+def get_admin_tickets(db: Session, user_id: str, skip: int = 0, limit: int = 25):
+    print(user_id)
     return (
         db.query(Ticket)
         .order_by(Ticket.time_departure.desc())
-        .filter(Ticket.seller == seller)
+        .filter(Ticket.id_user == user_id)
         .all()
     )
 
@@ -436,6 +439,22 @@ def apply_discount_to_ticket(db: Session, ticket_id: uuid.UUID, discount_percent
         db.commit()
         db.refresh(ticket)
 
+        return ticket
+    except Exception as e:
+        print("Error: ", e)
+        db.rollback()
+        raise
+
+def update_ticket_user(db: Session, event_data: dict):
+    new_user_id = event_data["current_user_id"]
+    ticket_id = uuid.UUID(event_data["ticket_id"])
+    try:
+        ticket = db.query(Ticket).filter(Ticket.id == ticket_id).first()
+        if not ticket:
+            raise ValueError(f"Ticket with id {ticket_id} not found")
+        ticket.id_user = new_user_id
+        db.commit()
+        db.refresh(ticket)
         return ticket
     except Exception as e:
         print("Error: ", e)
