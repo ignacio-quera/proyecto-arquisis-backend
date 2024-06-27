@@ -7,6 +7,7 @@ from app.routes.purchases import router as purchases_router
 from app.routes.workers import router as workers_router
 from app.routes.admintickets import router as admin_tickets_router
 from app.routes.adminpurchases import router as admin_purchases_router
+from app.routes.auctions import router as auctions_router
 router = APIRouter()
 
 router.include_router(flights_router, tags=["flights"], prefix="/flights")
@@ -17,3 +18,4 @@ router.include_router(predictions_router, tags=["predictions"], prefix="/predict
 router.include_router(workers_router, tags=["workers"], prefix="/workers")
 router.include_router(admin_tickets_router, tags=["admintickets"], prefix="/admintickets")
 router.include_router(admin_purchases_router, tags=["adminpurchases"], prefix="/adminpurchases")
+router.include_router(auctions_router, tags=["auctions"], prefix = "/auctions")

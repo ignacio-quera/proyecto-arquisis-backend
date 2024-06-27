@@ -10,7 +10,8 @@ import uuid
 import json
 from app.db import crud
 from app.db.database import SessionLocal
-from app.db.models import TicketCreate
+from dotenv import load_dotenv
+import os
 import httpx 
 
 def get_airport_coordinates(airport_code):
@@ -31,9 +32,13 @@ def get_airport_coordinates(airport_code):
         raise Exception(f"API request failed with status {response.status_code}: {response.text}")
 
 
+# Especifica la ruta completa al archivo .env que deseas cargar
+load_dotenv(".env") 
 
 #PUBLISHER_URL = "http://publisher_container:9001"
 FRONTEND_URL = "http://localhost:3000"
+#ADMIN_ID = os.getenv("ADMIN_USER_ID")
+ADMIN_ID = "google-oauth2|106408141437006333297"
 # FRONTEND_URL = "https://www.angegazituae0.me"
 
 router = APIRouter()
@@ -51,10 +56,10 @@ async def get_admin_tickets(
     request: Request,
     db: Session = Depends(get_db)
     ):
-    user_id = request.headers["user"]
     seller = "23"
     print("hola")
-    tickets = crud.get_admin_tickets(db, user_id)
+    print(ADMIN_ID)
+    tickets = crud.get_admin_tickets(db, ADMIN_ID)
     print("pasamos el crud")
     if not tickets:
         return f"No hay ningún ticket"
@@ -66,20 +71,28 @@ async def update_ticket_for_user(event_data: dict = Body(...), db: Session = Dep
         request_id = uuid.uuid4()
         print(event_data)
         ticket = crud.update_ticket_user(db, event_data)
-        print(ticket)
-        # event_data["request_id"] = str(request_id)
-        # return_url = f"{FRONTEND_URL}/compracompletada?ticket_id={ticket.id}&flight_id={ticket.flight_id}&amount={ticket.amount}"
-        # tx = Transaction(WebpayOptions(IntegrationCommerceCodes.WEBPAY_PLUS, IntegrationApiKeys.WEBPAY, IntegrationType.TEST))
-        # buy_order = str(random.randrange(1000000, 99999999))
-        # try:
-        #     result = tx.create(buy_order, event_data["request_id"], event_data["amount"], return_url)
-        #     event_data["token"] = result["token"]
-        #     ticket = crud.update_ticket_user(db, event_data, request_id)
-        #     #requests.post(f'{PUBLISHER_URL}/requests', json=event_data)
-        #     return result
-        # except TransbankError as e:
-        #     print(e.message)
-        #     return {"error": e.message}
+        event_data["request_id"] = str(request_id)
+        # ticket_id = str(event_data["ticket_id"])
+        # flight_id = str(event_data["flight_id"])
+        # amount = str(event_data["amount"])
+        print("hola 1")
+        return_url = f"{FRONTEND_URL}/compracompletada?ticket_id={ticket.id}&flight_id={ticket.flight_id}&amount={ticket.amount}"
+        print("hola 2")
+        tx = Transaction(WebpayOptions(IntegrationCommerceCodes.WEBPAY_PLUS, IntegrationApiKeys.WEBPAY, IntegrationType.TEST))
+        print("hola 3")
+        buy_order = str(random.randrange(1000000, 99999999))
+        try:
+            print("hola 4")
+            result = tx.create(buy_order, event_data["request_id"], event_data["amount"], return_url)
+            print("hola 5")
+            event_data["token"] = result["token"]
+            print("hola 6")
+            #ticket = crud.update_ticket_user(db, event_data, request_id)
+            #requests.post(f'{PUBLISHER_URL}/requests', json=event_data)
+            return result
+        except TransbankError as e:
+            print(e.message)
+            return {"error": e.message}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     

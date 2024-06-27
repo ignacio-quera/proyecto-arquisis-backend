@@ -17,6 +17,11 @@ USER = os.getenv("USER")
 PASSWORD = os.getenv("PASSWORD")
 TOPIC_REQUEST = "flights/requests"
 TOPIC_VALIDATION = "flights/validations"
+TOPIC_AUCTION_OFFER = "flights/auctions"
+TOPIC_AUCTION_PROPOSAL = "flights/auctions/proposal"
+TOPIC_AUCTION_RESPONSE = "flights/auctions/response"
+
+
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
@@ -82,6 +87,30 @@ async def publish(event_data: dict = Body(...)):
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/auctions")
+async def publish(event_data: dict = Body(...)):
+    print("Publishing auction offer")
+    print(event_data)
+    try:
+        offer = {
+            "auction_id": event_data["auction_id"],
+            "proposal_id": "",
+            "departure_airport": event_data["departure_airport"],
+            "arrival_airport": event_data["arrival_airport"],
+            "departure_time": event_data["departure_time"],
+            "airline": event_data["airline"],
+            "quantity": event_data["quantity"],
+            "group_id": event_data["group_id"],
+            "type": "offer"
+        }
+        print(offer)
+        offer = json.dumps(offer)
+        client.publish(TOPIC_AUCTION_OFFER, offer)
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 @app.get("/")
