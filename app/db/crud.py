@@ -363,6 +363,7 @@ import requests
 
 # Función para obtener las coordenadas del aeropuerto utilizando geocode.maps.co
 def get_airport_coordinates(db: Session, airport_id: str):
+    backoff_factor = 2
     try:
         airport = get_airport_by_id(db, airport_id)
         print("Obteniendo coordenadas del aeropuerto")
@@ -513,28 +514,6 @@ def get_auctions(db: Session):
 def get_auctions_by_proposal_id(db: Session, proposal_id: uuid.UUID):
     return db.query(Auction).filter(Auction.proposal_id == proposal_id).all()
 
-# def update_auction(db: Session, event_data: dict):
-#     auction_id = event_data["auction_id"]
-#     proposal_id = event_data["proposal_id"]
-#     departure_airport = event_data["departure_airport"]
-#     arrival_airport = event_data["arrival_airport"]
-#     departure_time = event_data["departure_time"]
-#     airline = event_data["airline"]
-#     quantity = event_data["quantity"]
-#     group_id = event_data["group_id"]
-#     type = event_data["type"]
-
-#     db.query(Auction).filter(Auction.id == auction_id).update({
-#         Auction.proposal_id: proposal_id,
-#         Auction.departure_airport: departure_airport,
-#         Auction.arrival_airport: arrival_airport,
-#         Auction.departure_time: departure_time,
-#         Auction.airline: airline,
-#         Auction.quantity: quantity,
-#         Auction.group_id: group_id,
-#         Auction.type: type
-#     })
-#     db.commit()
-
-
-
+def update_auction_proposal_id(db: Session, auction_id: uuid.UUID, proposal_id: uuid.UUID):
+    db.query(Auction).filter(Auction.id == auction_id).update({Auction.proposal_id: proposal_id})
+    db.commit()

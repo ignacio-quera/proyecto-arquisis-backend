@@ -42,13 +42,16 @@ async def create_auction_proposal(event_data: dict = Body(...), db: Session = De
         raise HTTPException(status_code=500, detail=str(e))
     
 @router.patch("/")
-async def update_auction_offer(event_data: dict = Body(...), db: Session = Depends(get_db)):
+async def update_auction_proposal(event_data: dict = Body(...), db: Session = Depends(get_db)):
     try:
         auction_id = event_data["auction_id"]
-        auction = crud.update_auction(db, event_data)
+        proposal_id = event_data["proposal_id"]
+        auction = crud.update_auction_proposal_id(db, event_data, auction_id, proposal_id)
         return auction
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
 
 @router.get("/")
 async def get_auctions(
