@@ -1,7 +1,7 @@
 import uuid
 from sqlalchemy.orm import Session
 from sqlalchemy import func, update  # Importar func desde SQLAlchemy
-from .models import Airport, Flight, Ticket, Users, Prediction, UserLocation
+from .models import Airport, Flight, Ticket, Users, Prediction, UserLocation, Auction
 from datetime import datetime, date, timedelta
 from sqlalchemy import cast, DateTime
 from datetime import datetime, timedelta
@@ -173,6 +173,7 @@ def create_ticket(db: Session, event_data: dict, ticket_id: uuid.UUID):
         price = event_data.get("price",100)
         status = event_data["status"]
         amount = int(event_data["amount"])
+        role = event_data["role"]
     
 
         # Creamos el objeto Ticket con la información del ticket y sus atributos
@@ -191,9 +192,10 @@ def create_ticket(db: Session, event_data: dict, ticket_id: uuid.UUID):
         )
 
         flight = db.query(Flight).filter(Flight.id == flight_id).first()
-        new_seats_available = flight.seats_available - amount
-        update_stmt = update(Flight).where(Flight.id == flight_id).values(seats_available=new_seats_available)
-        db.execute(update_stmt)
+        if role == "admin":
+            new_seats_available = flight.seats_available - amount
+            update_stmt = update(Flight).where(Flight.id == flight_id).values(seats_available=new_seats_available)
+            db.execute(update_stmt)
         # Agregar el ticket a la sesión y confirmar la transacción
         db.add(ticket)
         db.commit()
@@ -471,12 +473,68 @@ def update_ticket_user(db: Session, event_data: dict):
         raise
 
 
-def create_auction_offer(db: Session, event_data: dict):
-
+def create_auction(db: Session, event_data: dict, auction_id: uuid.UUID):
     try:
-        return {'message': 'Auction created successfully'}
+        quantity = event_data["quantity"]
+        group_id = event_data["group_id"]
+        airline = event_data["airline"]
+        type = event_data["type"]
+        departure_airport_id = event_data["departure_airport"]
+        arrival_airport_id = event_data["arrival_airport"]
+        datetime = event_data["departure_time"]
+
+        auction = Auction(
+            id=auction_id,
+            quantity=quantity,
+            departure_airport_id=departure_airport_id,
+            arrival_airport_id=arrival_airport_id,
+            datetime=datetime,
+            group_id=group_id,
+            airline=airline,
+            type=type
+
+        )
+
+        db.add(auction)
+        db.commit()
+        db.refresh(auction)
+
+        return auction
     except Exception as e:
         print(e)
         raise
+
+def get_auction_by_id(db: Session, auction_id: uuid.UUID):
+    return db.query(Auction).filter(Auction.id == auction_id).first()
+
+def get_auctions(db: Session):
+    return db.query(Auction).all()
+
+def get_auctions_by_proposal_id(db: Session, proposal_id: uuid.UUID):
+    return db.query(Auction).filter(Auction.proposal_id == proposal_id).all()
+
+# def update_auction(db: Session, event_data: dict):
+#     auction_id = event_data["auction_id"]
+#     proposal_id = event_data["proposal_id"]
+#     departure_airport = event_data["departure_airport"]
+#     arrival_airport = event_data["arrival_airport"]
+#     departure_time = event_data["departure_time"]
+#     airline = event_data["airline"]
+#     quantity = event_data["quantity"]
+#     group_id = event_data["group_id"]
+#     type = event_data["type"]
+
+#     db.query(Auction).filter(Auction.id == auction_id).update({
+#         Auction.proposal_id: proposal_id,
+#         Auction.departure_airport: departure_airport,
+#         Auction.arrival_airport: arrival_airport,
+#         Auction.departure_time: departure_time,
+#         Auction.airline: airline,
+#         Auction.quantity: quantity,
+#         Auction.group_id: group_id,
+#         Auction.type: type
+#     })
+#     db.commit()
+
 
 

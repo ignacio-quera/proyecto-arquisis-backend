@@ -60,6 +60,7 @@ def read_flights_admin(
     flights = []
     for ticket in tickets:
         flight = crud.get_flights_by_id(db, ticket.flight_id)
+        flight[0].seats_available = ticket.amount
         flights.append(flight)
     if not flights:
         return "No hay información de vuelos disponible"

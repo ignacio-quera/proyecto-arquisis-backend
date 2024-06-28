@@ -22,8 +22,6 @@ app.add_middleware(
 )
 
 
-# models.Base.metadata.drop_all(bind=database.engine, tables=[models.Ticket.__table__])
-
 models.Base.metadata.create_all(bind=database.engine)
 
 

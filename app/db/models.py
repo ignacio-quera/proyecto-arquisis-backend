@@ -135,7 +135,9 @@ class Auction(Base):
     __tablename__ = 'auctions'
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     proposal_id =  uuid.UUID
-    flightId = Column(Integer)
+    departure_airport_id = Column(String)
+    arrival_airport_id = Column(String)
+    datetime = Column(String)   
     quantity = Column(Integer)
     group_id = Column(Integer)
     airline = Column(String)
@@ -144,7 +146,9 @@ class Auction(Base):
 class AuctionCreate(BaseModel):
     id: uuid.UUID
     proposal_id: uuid.UUID
-    flightId: int
+    departure_airport_id: str
+    arrival_airport_id: str
+    datetime: str
     quantity: int
     group_id: int
     airline: str

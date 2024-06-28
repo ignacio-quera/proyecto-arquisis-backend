@@ -110,6 +110,29 @@ async def publish(event_data: dict = Body(...)):
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.post("/auctions/proposal")
+async def publish(event_data: dict = Body(...)):
+    print("Publishing auction offer")
+    print(event_data)
+    try:
+        offer = {
+            "auction_id": event_data["auction_id"],
+            "proposal_id": "",
+            "departure_airport": event_data["departure_airport"],
+            "arrival_airport": event_data["arrival_airport"],
+            "departure_time": event_data["departure_time"],
+            "airline": event_data["airline"],
+            "quantity": event_data["quantity"],
+            "group_id": event_data["group_id"],
+            "type": "proposal"
+        }
+        print(offer)
+        offer = json.dumps(offer)
+        client.publish(TOPIC_AUCTION_OFFER, offer)
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 

@@ -25,12 +25,20 @@ def get_db():
 async def create_auction_offer(event_data: dict = Body(...), db: Session = Depends(get_db)):
     try:
         auction_id = uuid.uuid4()
-        auction_id = str(auction_id)
-        event_data["auction_id"] = auction_id
+        auction = crud.create_auction(db, event_data, auction_id)
         requests.post(f'{PUBLISHER_URL}/auctions', json=event_data)
         return {'message': 'Auction created successfully'}
     except Exception as e:
         print(e)
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.post("/proposal")
+async def create_auction_proposal(event_data: dict = Body(...), db: Session = Depends(get_db)):
+    try:
+        proposal_id = uuid.uuid4()
+        event_data["proposal_id"] = str(proposal_id)
+        requests.post(f'{PUBLISHER_URL}/auctions', json=event_data)
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
 @router.patch("/")
@@ -44,12 +52,9 @@ async def update_auction_offer(event_data: dict = Body(...), db: Session = Depen
 
 @router.get("/")
 async def get_auctions(
-    request: Request,
-    db: Session = Depends(get_db)
+        db: Session = Depends(get_db)
     ):
-    headers = dict(request.headers)
-    user_id = headers.get("user")
-    auctions = crud.get_auctions_by_user_id(db, user_id)
+    auctions = crud.get_auctions(db)
     if not auctions:
         return f"No hay ninguna subasta"
     return auctions

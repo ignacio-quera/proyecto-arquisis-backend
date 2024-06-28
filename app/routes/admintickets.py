@@ -80,20 +80,6 @@ async def get_admin_tickets(
         return f"No hay ningún ticket"
     return tickets
 
-@router.get("/{ticket_id}")
-def get_tickets_by_id(
-    ticket_id: str,
-    db: Session = Depends(get_db)
-    ):
-    print(ticket_id, type(ticket_id))
-    ticket_uid = uuid.UUID(ticket_id)
-    print(ticket_uid, type(ticket_uid))
-    ticket = crud.get_tickets_by_id(db, ticket_uid)
-    print(ticket.id)
-    if not ticket:
-        return f"No hay ningún ticket con id {ticket_id}"
-    return ticket
-
 @router.post("/")
 async def update_ticket_for_user(event_data: dict = Body(...), db: Session = Depends(get_db)):
     try:
