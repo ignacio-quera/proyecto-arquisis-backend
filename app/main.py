@@ -10,7 +10,11 @@ from app.router import router
 app = FastAPI()
 
 origins = [
-    "*",  # Allow all
+    "https://www.angegazituae0.me",
+    "localhost:3000",
+    "localhost:3001",
+    "https://api.angegazituae0.me",
+    "api.angezaituae0.me"  # Allow all
 ]   
 
 app.add_middleware(
