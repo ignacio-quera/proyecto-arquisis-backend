@@ -14,7 +14,6 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import httpx
 
-PUBLISHER_URL = "http://publisher_container:9001"
 BACKEND_URL = "http://fastapi_app_e2:8000"
 
 SMTP_SERVER = 'smtp.gmail.com'
@@ -74,31 +73,15 @@ async def webpay_confirm(event_data: dict = Body(...), db: Session = Depends(get
             message = {
                 'request_id': response["session_id"],
                 'valid': True,
-                'seller': 23
             }
             crud.update_ticket(db, response["session_id"], "valid")
-            requests.post(f'{PUBLISHER_URL}/validations', json=message)
-
-            #Hacer predicción
-            try:
-                async with httpx.AsyncClient() as client:
-                    print("HAGAMOS UNA PREDCICCION")
-                    make_prediction_response = await client.post(f"{BACKEND_URL}/predictions/", json={"user_id": user_id})
-                    make_prediction_result = make_prediction_response.json()
-                    print("PREDICCION REALIZADA")
-                    print(make_prediction_result)
-            except Exception as e:
-                print("Error making prediction: ", e)
-
             return {'message': 'Transaction confirmed'}
         else:
             crud.update_ticket(db, response["session_id"], "invalid")
             message = {
                 'request_id': response["session_id"],
                 'valid': False,
-                'seller': 23
             }
-            requests.post(f'{PUBLISHER_URL}/validations', json=message)
             return {'message': 'Transaction cancelled'}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

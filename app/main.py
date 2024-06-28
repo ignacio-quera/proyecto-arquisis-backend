@@ -10,7 +10,7 @@ from app.router import router
 app = FastAPI()
 
 origins = [
-    "*",
+    "*",  # Allow all
 ]   
 
 app.add_middleware(
@@ -21,7 +21,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 models.Base.metadata.create_all(bind=database.engine)
+
 
 app.include_router(router)
 

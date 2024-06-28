@@ -86,5 +86,33 @@ def handleTicketValidation(data):
     pass
 
 def handleAuction(data):
-    
+    try:
+        auction_id = data["auction_id"]
+        proposal_id = data["proposal_id"]
+        departure_airport = data["departure_airport"]
+        arrival_airport = data["arrival_airport"]
+        departure_time = data["departure_time"]
+        airline = data["airline"]
+        quantity = data["quantity"]
+        group_id = data["group_id"]
+        type = data["type"]
+
+        auction_json = {
+            "auction_id": auction_id,
+            "proposal_id": proposal_id,
+            "departure_airport": departure_airport,
+            "arrival_airport": arrival_airport,
+            "departure_time": departure_time,
+            "airline": airline,
+            "quantity": quantity,
+            "group_id": group_id,
+            "type": type
+        }
+        response = requests.post(os.getenv("API_URL")+"/auctions/", json=auction_json)
+        if response.status_code == 200:
+            print("Mensaje enviado a la API con éxito.")
+        else:
+            print("Error al enviar el mensaje a la API:", response.text)
+    except Exception as e:
+        print("Error al manejar el mensaje:", e)
     pass

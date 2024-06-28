@@ -42,6 +42,30 @@ def read_flights(
 
     return flights
 
+ADMIN_ID = "auth0|666cd0831d14e274fd4dcc0d"
+
+
+@router.get("/admin")
+def read_flights_admin(
+    page: int = Query(1, description="Page number", gt=0),
+    count: int = Query(25, description="Number of items per page", gt=0, le=100),
+    db: Session = Depends(get_db)
+):
+    # Calcular el offset
+    skip = (page - 1) * count
+    tickets = crud.get_admin_tickets(db, ADMIN_ID)
+    print(tickets)
+    if not tickets:
+        return f"No hay ningún ticket"
+    flights = []
+    for ticket in tickets:
+        flight = crud.get_flights_by_id(db, ticket.flight_id)
+        flight[0].seats_available = ticket.amount
+        flights.append(flight)
+    if not flights:
+        return "No hay información de vuelos disponible"
+
+    return flights
 
 # # Endpoint para mostrar el detalle de un vuelo por su identificador
 @router.get("/{flight_id}")

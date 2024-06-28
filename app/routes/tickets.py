@@ -68,12 +68,22 @@ async def read_tickets(
     ):
     headers = dict(request.headers)
     user_id = headers.get("user")
-    print(headers, user_id)
+    print(user_id)
     tickets = crud.get_tickets_by_user_id(db, user_id)
 
     if not tickets:
         return f"No hay ningún ticket"
     return tickets
+
+# @router.get("/all")
+# def get_all_tickets(
+#     db: Session = Depends(get_db)
+#     ):
+#     print('test1')
+#     tickets = crud.get_all_tickets(db)
+#     if not tickets:
+#         return f"No hay ningún ticket"
+#     return tickets
 
 @router.get("/{ticket_id}")
 def get_tickets_by_id(
@@ -84,6 +94,7 @@ def get_tickets_by_id(
     ticket_uid = uuid.UUID(ticket_id)
     print(ticket_uid, type(ticket_uid))
     ticket = crud.get_tickets_by_id(db, ticket_uid)
+    print(ticket.id)
     if not ticket:
         return f"No hay ningún ticket con id {ticket_id}"
     return ticket
@@ -92,11 +103,9 @@ def get_tickets_by_id(
 async def create_ticket(event_data: dict = Body(...), db: Session = Depends(get_db)):
     try:
         request_id = uuid.uuid4()
-        print("hola")
         ticket = crud.create_ticket(db, event_data, request_id)
-        print(ticket)
         event_data["request_id"] = str(request_id)
-        return_url = f"{FRONTEND_URL}/compracompletada?ticket_id={ticket.id}&flight_id={ticket.flight_id}&amount={ticket.amount}"
+        return_url = f"{FRONTEND_URL}/compracompletada?ticket_id={ticket.id}&flight_id={ticket.flight_id}&amount={ticket.amount}&role={event_data['role']}"
         tx = Transaction(WebpayOptions(IntegrationCommerceCodes.WEBPAY_PLUS, IntegrationApiKeys.WEBPAY, IntegrationType.TEST))
         buy_order = str(random.randrange(1000000, 99999999))
         try:

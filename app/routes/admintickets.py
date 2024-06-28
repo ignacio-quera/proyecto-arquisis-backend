@@ -1,16 +1,35 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Body, BackgroundTasks, Request
+from fastapi import APIRouter, Depends, HTTPException, Body, Request, status
 from sqlalchemy.orm import Session
-# from botocore.exceptions import ClientError
 from transbank.webpay.webpay_plus.transaction import Transaction, WebpayOptions, IntegrationCommerceCodes, IntegrationApiKeys
 from transbank.common.integration_type import IntegrationType
 from transbank.error.transbank_error import TransbankError
+from fastapi.security import OAuth2PasswordBearer
 import requests
 import random
 import uuid
 import json
 from app.db import crud
 from app.db.database import SessionLocal
-import httpx
+from dotenv import load_dotenv
+import os
+import httpx 
+
+def get_current_user_role(token: str = Depends(OAuth2PasswordBearer(tokenUrl="token"))):
+    # Decode token
+
+    if token == "admin_token":
+        return "admin"
+    else:
+        return "user"
+
+# Dependency to check if the user is an admin
+def admin_required(role: str = Depends(get_current_user_role)):
+    return;
+    if role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have the necessary permissions to access this resource."
+        )
 
 def get_airport_coordinates(airport_code):
     base_url = "https://geocode.maps.co"
@@ -30,25 +49,13 @@ def get_airport_coordinates(airport_code):
         raise Exception(f"API request failed with status {response.status_code}: {response.text}")
 
 
-def get_airport_coordinates(airport_name):
-    base_url = "https://geocode.maps.co"
-    params = {'q': airport_name}
-    response = requests.get(base_url, params=params)
-    if response.status_code == 200:
-        results = response.json()
-        if results:
-            first_result = results[0]  # Assuming the first result is the most relevant
-            lat = first_result['lat']
-            lon = first_result['lon']
-            return (lat, lon)
-        else:
-            return None
-    else:
-        raise Exception(f"API request failed with status {response.status_code}: {response.text}")
+# Especifica la ruta completa al archivo .env que deseas cargar
+load_dotenv(".env") 
 
-
-PUBLISHER_URL = "http://publisher_container:9001"
+#PUBLISHER_URL = "http://publisher_container:9001"
 FRONTEND_URL = "http://localhost:3000"
+#ADMIN_ID = os.getenv("ADMIN_USER_ID")
+ADMIN_ID = "auth0|666cd0831d14e274fd4dcc0d"
 # FRONTEND_URL = "https://www.angegazituae0.me"
 
 router = APIRouter()
@@ -61,32 +68,35 @@ def get_db():
         db.close()
 
 
-@router.get("/")
+@router.get("/", dependencies=[Depends(admin_required)])
 async def get_admin_tickets(
+    request: Request,
     db: Session = Depends(get_db)
     ):
     seller = "23"
-    print("hola")
-    tickets = crud.get_admin_tickets(db, seller)
-    print("pasamos el crud")
+    tickets = crud.get_admin_tickets(db, ADMIN_ID)
+    print(tickets)
     if not tickets:
         return f"No hay ningún ticket"
     return tickets
 
 @router.post("/")
-async def create_ticket(event_data: dict = Body(...), db: Session = Depends(get_db)):
+async def update_ticket_for_user(event_data: dict = Body(...), db: Session = Depends(get_db)):
     try:
         request_id = uuid.uuid4()
-        ticket = crud.create_ticket(db, event_data, request_id)
-        print(ticket)
+        ticket = crud.update_ticket_user(db, event_data)
         event_data["request_id"] = str(request_id)
+        # ticket_id = str(event_data["ticket_id"])
+        # flight_id = str(event_data["flight_id"])
+        # amount = str(event_data["amount"])
         return_url = f"{FRONTEND_URL}/compracompletada?ticket_id={ticket.id}&flight_id={ticket.flight_id}&amount={ticket.amount}"
         tx = Transaction(WebpayOptions(IntegrationCommerceCodes.WEBPAY_PLUS, IntegrationApiKeys.WEBPAY, IntegrationType.TEST))
         buy_order = str(random.randrange(1000000, 99999999))
         try:
             result = tx.create(buy_order, event_data["request_id"], event_data["amount"], return_url)
             event_data["token"] = result["token"]
-            requests.post(f'{PUBLISHER_URL}/requests', json=event_data)
+            #ticket = crud.update_ticket_user(db, event_data, request_id)
+            #requests.post(f'{PUBLISHER_URL}/requests', json=event_data)
             return result
         except TransbankError as e:
             print(e.message)
@@ -118,3 +128,30 @@ def delete_ticket(
         return tickets
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/{ticket_id}")
+def get_tickets_by_id(
+    ticket_id: str,
+    db: Session = Depends(get_db)
+    ):
+    print(ticket_id, type(ticket_id))
+    ticket_uid = uuid.UUID(ticket_id)
+    print(ticket_uid, type(ticket_uid))
+    ticket = crud.get_tickets_by_id(db, ticket_uid)
+    if not ticket:
+        return f"No hay ningún ticket con id {ticket_id}"
+    return ticket
+
+@router.post("/{ticket_id}/discount")
+def apply_discount(
+    ticket_id: str,
+    request: Request,
+    db: Session = Depends(get_db)
+    ):
+    discount_percentage = int(request.headers["discount"])
+    print(discount_percentage, type(discount_percentage))
+    print(ticket_id, type(ticket_id))
+    ticket_uid = uuid.UUID(ticket_id)
+    print(ticket_uid, type(ticket_uid))
+    ticket = crud.apply_discount_to_ticket(db, ticket_uid, discount_percentage)
+    return ticket

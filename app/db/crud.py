@@ -1,7 +1,7 @@
 import uuid
 from sqlalchemy.orm import Session
 from sqlalchemy import func, update  # Importar func desde SQLAlchemy
-from .models import Airport, Flight, Ticket, Users, Prediction, UserLocation
+from .models import Airport, Flight, Ticket, Users, Prediction, UserLocation, Auction
 from datetime import datetime, date, timedelta
 from sqlalchemy import cast, DateTime
 from datetime import datetime, timedelta
@@ -9,9 +9,14 @@ from typing import List, Dict
 from requests.exceptions import RequestException
 import random
 import time
+from dotenv import load_dotenv
+import os
 
+load_dotenv(".env")
 
-#Función que recibe la información del evento y crea los vuelos y los aeropuertos
+ADMIN_USER_ID = os.getenv("ADMIN_USER_ID")
+
+# Función que recibe la información del evento y crea los vuelos y los aeropuertos
 def create_event_with_flight(db: Session, event_data: dict):
     try:
         #Obtenermos la información que viene en el JSON del evento
@@ -34,7 +39,7 @@ def create_event_with_flight(db: Session, event_data: dict):
             arrival_airport = Airport(id=arrival_airport_id, name=arrival_airport_name)
             db.add(arrival_airport)
 
-        #Creamos el objeto Flight con la información del vuelo y sus atributos
+        # Creamos el objeto Flight con la información del vuelo y sus atributos
         flight = Flight(
             departure_airport_id=departure_airport.id,
             departure_airport_name=departure_airport.name,
@@ -73,13 +78,13 @@ def get_flights(
     skip: int = 0, 
     limit: int = 25
 ):
-    #Obtenemos la fecha actual para filtrar vuelos pasados
+    # Obtenemos la fecha actual para filtrar vuelos pasados
     current_date = datetime.now()
 
-    #Aplicar la consulta base para los vuelos
+    # Aplicar la consulta base para los vuelos
     query = db.query(Flight)
 
-    #Aplicamos filtros si corresponde
+    # Aplicamos filtros si corresponde
 
     # Si se recibe alguno de los parámetros de búsqueda debemos solo mostrar los que no han salido!
     if (departure or arrival or date):
@@ -103,7 +108,7 @@ def get_flights(
     return flights
        
     
-#RF2 - ofrecer un endpoint para mostrar el detalle de cada vuelo recibido desde el broker.
+# RF2 - ofrecer un endpoint para mostrar el detalle de cada vuelo recibido desde el broker.
 def get_flights_by_id(db: Session, flight_id: int, skip: int = 0, limit: int = 25):
     return (
         db.query(Flight)
@@ -158,19 +163,20 @@ def get_airport_by_id(db: Session, airport_id: str):
 def create_ticket(db: Session, event_data: dict, ticket_id: uuid.UUID):
     print(event_data)
     try:
-        #Obtenermos la información que viene en el JSON del evento
+        # Obtenermos la información que viene en el JSON del evento
         departure_airport_id = event_data["departure_airport_id"]
         arrival_airport_id = event_data["arrival_airport_id"]
         user_id = event_data["user_id"]
         flight_id = int(event_data["flight_id"])
         time_departure = event_data["time_departure"]
         seller = event_data["seller"]
-        price = event_data.get("price", 100)
+        price = event_data.get("price",100)
         status = event_data["status"]
         amount = int(event_data["amount"])
+        role = event_data["role"]
     
 
-        #Creamos el objeto Ticket con la información del ticket y sus atributos
+        # Creamos el objeto Ticket con la información del ticket y sus atributos
         ticket = Ticket(
             id=ticket_id,
             id_user=user_id,
@@ -186,9 +192,10 @@ def create_ticket(db: Session, event_data: dict, ticket_id: uuid.UUID):
         )
 
         flight = db.query(Flight).filter(Flight.id == flight_id).first()
-        new_seats_available = flight.seats_available - amount
-        update_stmt = update(Flight).where(Flight.id == flight_id).values(seats_available=new_seats_available)
-        db.execute(update_stmt)
+        if role == "admin":
+            new_seats_available = flight.seats_available - amount
+            update_stmt = update(Flight).where(Flight.id == flight_id).values(seats_available=new_seats_available)
+            db.execute(update_stmt)
         # Agregar el ticket a la sesión y confirmar la transacción
         db.add(ticket)
         db.commit()
@@ -204,10 +211,17 @@ def update_ticket(db: Session, ticket_id: uuid.UUID, status: str):
     db.query(Ticket).filter(Ticket.id == ticket_id).update({Ticket.status: status})
     db.commit()
 
+def get_all_tickets(db: Session, skip: int = 0, limit: int = 25):
+    print("entramos al crud")
+    return db.query(Ticket).offset(skip).limit(limit).all()
+
 def get_tickets_by_id(db: Session, ticket_id: uuid.UUID):
+    print("entramos al crud")
+    print(ticket_id)
     return (
         db.query(Ticket)
         .filter(Ticket.id == ticket_id)
+        .first()
     )
 
 def get_tickets_by_user_id(db: Session, user_id: int, skip: int = 0, limit: int = 25):
@@ -219,12 +233,12 @@ def get_tickets_by_user_id(db: Session, user_id: int, skip: int = 0, limit: int 
         .all()
     )
 
-def get_admin_tickets(db: Session, seller: str, skip: int = 0, limit: int = 25):
-    print(seller)
+def get_admin_tickets(db: Session, user_id: str, skip: int = 0, limit: int = 25):
+    print(user_id)
     return (
         db.query(Ticket)
         .order_by(Ticket.time_departure.desc())
-        .filter(Ticket.seller == seller)
+        .filter(Ticket.id_user == user_id)
         .all()
     )
 
@@ -328,7 +342,7 @@ def get_tickets_by_user_id(db: Session, user_id: int, skip: int = 0, limit: int 
         .all()
     )
 
-#Obtener el último ticker comprado por el usuario
+# Obtener el último ticker comprado por el usuario
 def get_last_approved_ticket(db: Session, user_id: int):
     return db.query(Ticket).filter(
         Ticket.id_user == user_id,
@@ -417,3 +431,110 @@ def get_airport_coordinates(db: Session, airport_id: str):
     except Exception as e:
         print(f"Error al obtener las coordenadas del aeropuerto: {e}")
         return None
+
+# RF08: Aplicar descuento
+def apply_discount_to_ticket(db: Session, ticket_id: uuid.UUID, discount_percentage: int):
+    try:
+        # Obtener el ticket por su ID
+        ticket = db.query(Ticket).filter(Ticket.id == ticket_id).first()
+        if not ticket:
+            raise ValueError(f"Ticket with id {ticket_id} not found")
+
+        # Calcular el nuevo precio aplicando el descuento
+        original_price = ticket.price
+        discount_amount = (original_price * discount_percentage) / 100
+        new_price = original_price - discount_amount
+
+        # Actualizar el precio del ticket
+        db.query(Ticket).filter(Ticket.id == ticket_id).update({Ticket.price: new_price})
+        db.commit()
+        db.refresh(ticket)
+
+        return ticket
+    except Exception as e:
+        print("Error: ", e)
+        db.rollback()
+        raise
+
+def update_ticket_user(db: Session, event_data: dict):
+    new_user_id = event_data["current_user_id"]
+    ticket_id = uuid.UUID(event_data["ticket_id"])
+    try:
+        ticket = db.query(Ticket).filter(Ticket.id == ticket_id).first()
+        if not ticket:
+            raise ValueError(f"Ticket with id {ticket_id} not found")
+        ticket.id_user = new_user_id
+        db.commit()
+        db.refresh(ticket)
+        return ticket
+    except Exception as e:
+        print("Error: ", e)
+        db.rollback()
+        raise
+
+
+def create_auction(db: Session, event_data: dict, auction_id: uuid.UUID):
+    try:
+        quantity = event_data["quantity"]
+        group_id = event_data["group_id"]
+        airline = event_data["airline"]
+        type = event_data["type"]
+        departure_airport_id = event_data["departure_airport"]
+        arrival_airport_id = event_data["arrival_airport"]
+        datetime = event_data["departure_time"]
+
+        auction = Auction(
+            id=auction_id,
+            quantity=quantity,
+            departure_airport_id=departure_airport_id,
+            arrival_airport_id=arrival_airport_id,
+            datetime=datetime,
+            group_id=group_id,
+            airline=airline,
+            type=type
+
+        )
+
+        db.add(auction)
+        db.commit()
+        db.refresh(auction)
+
+        return auction
+    except Exception as e:
+        print(e)
+        raise
+
+def get_auction_by_id(db: Session, auction_id: uuid.UUID):
+    return db.query(Auction).filter(Auction.id == auction_id).first()
+
+def get_auctions(db: Session):
+    return db.query(Auction).all()
+
+def get_auctions_by_proposal_id(db: Session, proposal_id: uuid.UUID):
+    return db.query(Auction).filter(Auction.proposal_id == proposal_id).all()
+
+# def update_auction(db: Session, event_data: dict):
+#     auction_id = event_data["auction_id"]
+#     proposal_id = event_data["proposal_id"]
+#     departure_airport = event_data["departure_airport"]
+#     arrival_airport = event_data["arrival_airport"]
+#     departure_time = event_data["departure_time"]
+#     airline = event_data["airline"]
+#     quantity = event_data["quantity"]
+#     group_id = event_data["group_id"]
+#     type = event_data["type"]
+
+#     db.query(Auction).filter(Auction.id == auction_id).update({
+#         Auction.proposal_id: proposal_id,
+#         Auction.departure_airport: departure_airport,
+#         Auction.arrival_airport: arrival_airport,
+#         Auction.departure_time: departure_time,
+#         Auction.airline: airline,
+#         Auction.quantity: quantity,
+#         Auction.group_id: group_id,
+#         Auction.type: type
+#     })
+#     db.commit()
+
+
+
