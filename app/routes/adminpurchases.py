@@ -75,18 +75,6 @@ async def webpay_confirm(event_data: dict = Body(...), db: Session = Depends(get
                 'valid': True,
             }
             crud.update_ticket(db, response["session_id"], "valid")
-
-            #Hacer predicción
-            try:
-                async with httpx.AsyncClient() as client:
-                    print("HAGAMOS UNA PREDCICCION")
-                    make_prediction_response = await client.post(f"{BACKEND_URL}/predictions/", json={"user_id": user_id})
-                    make_prediction_result = make_prediction_response.json()
-                    print("PREDICCION REALIZADA")
-                    print(make_prediction_result)
-            except Exception as e:
-                print("Error making prediction: ", e)
-
             return {'message': 'Transaction confirmed'}
         else:
             crud.update_ticket(db, response["session_id"], "invalid")

@@ -68,12 +68,22 @@ async def read_tickets(
     ):
     headers = dict(request.headers)
     user_id = headers.get("user")
-    print(headers, user_id)
+    print(user_id)
     tickets = crud.get_tickets_by_user_id(db, user_id)
 
     if not tickets:
         return f"No hay ningún ticket"
     return tickets
+
+# @router.get("/all")
+# def get_all_tickets(
+#     db: Session = Depends(get_db)
+#     ):
+#     print('test1')
+#     tickets = crud.get_all_tickets(db)
+#     if not tickets:
+#         return f"No hay ningún ticket"
+#     return tickets
 
 @router.get("/{ticket_id}")
 def get_tickets_by_id(

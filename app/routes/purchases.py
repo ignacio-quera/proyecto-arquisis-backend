@@ -74,6 +74,7 @@ async def webpay_confirm(event_data: dict = Body(...), db: Session = Depends(get
             message = {
                 'request_id': response["session_id"],
                 'valid': True,
+                'seller': 23
             }
             crud.update_ticket(db, response["session_id"], "valid")
             requests.post(f'{PUBLISHER_URL}/validations', json=message)
@@ -95,6 +96,7 @@ async def webpay_confirm(event_data: dict = Body(...), db: Session = Depends(get
             message = {
                 'request_id': response["session_id"],
                 'valid': False,
+                'seller': 23
             }
             requests.post(f'{PUBLISHER_URL}/validations', json=message)
             return {'message': 'Transaction cancelled'}

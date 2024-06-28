@@ -131,10 +131,21 @@ class UserLocationCreate(BaseModel):
     pass
 
 class Auction(Base):
-    id = uuid.UUID
+
+    __tablename__ = 'auctions'
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     proposal_id =  uuid.UUID
     flightId = Column(Integer)
     quantity = Column(Integer)
     group_id = Column(Integer)
     airline = Column(String)
     type = Column(String)
+
+class AuctionCreate(BaseModel):
+    id: uuid.UUID
+    proposal_id: uuid.UUID
+    flightId: int
+    quantity: int
+    group_id: int
+    airline: str
+    type: str

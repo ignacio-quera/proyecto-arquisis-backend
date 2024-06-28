@@ -21,7 +21,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# models.Base.metadata.drop_all(bind=database.engine, tables=[models.Ticket.__table__])
+
 models.Base.metadata.create_all(bind=database.engine)
+
 
 app.include_router(router)
 

@@ -9,7 +9,12 @@ from typing import List, Dict
 from requests.exceptions import RequestException
 import random
 import time
+from dotenv import load_dotenv
+import os
 
+load_dotenv(".env")
+
+ADMIN_USER_ID = os.getenv("ADMIN_USER_ID")
 
 # Función que recibe la información del evento y crea los vuelos y los aeropuertos
 def create_event_with_flight(db: Session, event_data: dict):
@@ -203,6 +208,10 @@ def create_ticket(db: Session, event_data: dict, ticket_id: uuid.UUID):
 def update_ticket(db: Session, ticket_id: uuid.UUID, status: str):
     db.query(Ticket).filter(Ticket.id == ticket_id).update({Ticket.status: status})
     db.commit()
+
+def get_all_tickets(db: Session, skip: int = 0, limit: int = 25):
+    print("entramos al crud")
+    return db.query(Ticket).offset(skip).limit(limit).all()
 
 def get_tickets_by_id(db: Session, ticket_id: uuid.UUID):
     print("entramos al crud")
@@ -460,3 +469,14 @@ def update_ticket_user(db: Session, event_data: dict):
         print("Error: ", e)
         db.rollback()
         raise
+
+
+def create_auction_offer(db: Session, event_data: dict):
+
+    try:
+        return {'message': 'Auction created successfully'}
+    except Exception as e:
+        print(e)
+        raise
+
+
