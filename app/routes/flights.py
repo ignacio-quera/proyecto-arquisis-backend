@@ -42,7 +42,7 @@ def read_flights(
 
     return flights
 
-ADMIN_ID = "auth0|666cd0831d14e274fd4dcc0d"
+ADMIN_ID = "google-oauth2|106408141437006333297"
 
 
 @router.get("/admin")

@@ -24,7 +24,7 @@ def get_current_user_role(token: str = Depends(OAuth2PasswordBearer(tokenUrl="to
 
 # Dependency to check if the user is an admin
 def admin_required(role: str = Depends(get_current_user_role)):
-    return;
+    #return;
     if role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -54,8 +54,8 @@ load_dotenv(".env")
 
 #PUBLISHER_URL = "http://publisher_container:9001"
 FRONTEND_URL = "http://localhost:3000"
-#ADMIN_ID = os.getenv("ADMIN_USER_ID")
-ADMIN_ID = "auth0|666cd0831d14e274fd4dcc0d"
+ADMIN_ID = os.getenv("ADMIN_USER_ID")
+ADMIN_ID = "google-oauth2|106408141437006333297"
 # FRONTEND_URL = "https://www.angegazituae0.me"
 
 router = APIRouter()
@@ -68,7 +68,7 @@ def get_db():
         db.close()
 
 
-@router.get("/", dependencies=[Depends(admin_required)])
+@router.get("/")
 async def get_admin_tickets(
     request: Request,
     db: Session = Depends(get_db)
@@ -80,7 +80,7 @@ async def get_admin_tickets(
         return f"No hay ningún ticket"
     return tickets
 
-@router.post("/")
+@router.post("/", dependencies=[Depends(admin_required)])
 async def update_ticket_for_user(event_data: dict = Body(...), db: Session = Depends(get_db)):
     try:
         request_id = uuid.uuid4()
@@ -142,7 +142,7 @@ def get_tickets_by_id(
         return f"No hay ningún ticket con id {ticket_id}"
     return ticket
 
-@router.post("/{ticket_id}/discount")
+@router.post("/{ticket_id}/discount", dependencies=[Depends(admin_required)])
 def apply_discount(
     ticket_id: str,
     request: Request,

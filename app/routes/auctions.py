@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Body, BackgroundTasks, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Body, BackgroundTasks, Request, status
 from sqlalchemy.orm import Session
 import requests
 import random
@@ -7,6 +7,7 @@ import json
 from app.db import crud
 from app.db.database import SessionLocal
 from dotenv import load_dotenv
+from fastapi.security import OAuth2PasswordBearer
 import os
 import httpx 
 
@@ -21,7 +22,24 @@ def get_db():
     finally:
         db.close()
 
-@router.post("/")
+def get_current_user_role(token: str = Depends(OAuth2PasswordBearer(tokenUrl="token"))):
+    # Decode token
+
+    if token == "admin_token":
+        return "admin"
+    else:
+        return "user"
+
+# Dependency to check if the user is an admin
+def admin_required(role: str = Depends(get_current_user_role)):
+    return;
+    if role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have the necessary permissions to access this resource."
+        )
+
+@router.post("/", dependencies=[Depends(admin_required)])
 async def create_auction_offer(event_data: dict = Body(...), db: Session = Depends(get_db)):
     try:
         auction_id = uuid.uuid4()
@@ -32,7 +50,7 @@ async def create_auction_offer(event_data: dict = Body(...), db: Session = Depen
         print(e)
         raise HTTPException(status_code=500, detail=str(e))
     
-@router.post("/proposal")
+@router.post("/proposal", dependencies=[Depends(admin_required)])
 async def create_auction_proposal(event_data: dict = Body(...), db: Session = Depends(get_db)):
     try:
         proposal_id = uuid.uuid4()
@@ -41,7 +59,7 @@ async def create_auction_proposal(event_data: dict = Body(...), db: Session = De
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
-@router.patch("/")
+@router.patch("/", dependencies=[Depends(admin_required)])
 async def update_auction_offer(event_data: dict = Body(...), db: Session = Depends(get_db)):
     try:
         auction_id = event_data["auction_id"]
@@ -50,7 +68,7 @@ async def update_auction_offer(event_data: dict = Body(...), db: Session = Depen
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/")
+@router.get("/", dependencies=[Depends(admin_required)])
 async def get_auctions(
         db: Session = Depends(get_db)
     ):
@@ -59,7 +77,7 @@ async def get_auctions(
         return f"No hay ninguna subasta"
     return auctions
 
-@router.get("/{auction_id}")
+@router.get("/{auction_id}", dependencies=[Depends(admin_required)])
 async def get_auction_by_id(
     auction_id: str,
     db: Session = Depends(get_db)
